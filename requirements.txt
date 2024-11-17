@@ -1,9 +1,3 @@
 streamlit
-streamlit-javascript
-pandas
-requests
-fastapi
-uvicorn
-pydantic
-os
 json
+os
