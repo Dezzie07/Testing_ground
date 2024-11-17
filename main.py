@@ -8,6 +8,6 @@ choice = st.sidebar.radio("Go to", ["Map", "Wikipedia"])
 
 # Navigate to the selected app
 if choice == "Map":
-    pipe.app()  # Call the app1 function
+    pipe.pipe_main()  # Call the app1 function
 elif choice == "Wikipedia":
     wikipedia1.app()  # Call the app2 function
