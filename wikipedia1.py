@@ -66,3 +66,5 @@ def app():
         pipe_data = {}
         save_data(pipe_data)
         st.warning("All data cleared!")
+
+app()
