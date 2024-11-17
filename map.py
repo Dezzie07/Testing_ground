@@ -4,6 +4,7 @@ import pandas as pd
 import math
 import requests
 import json
+import os
 import streamlit.components.v1 as components
 from streamlit_javascript import st_javascript as stjs 
 import time
@@ -665,6 +666,7 @@ function deleteFeature(e) {{
 """
 components.html(mapbox_map_html, height=600)
 
+################################### Pipe calculation ##################################################
 #the pip price calculation par of the code:
 # Pipe data dictionaries
 B1001_data_dict = {
@@ -1030,7 +1032,7 @@ def get_user_inputs():
     medium = st.text_input("Enter the medium:")
 
     return pressure, temperature, medium
-
+################################## API Data's ##################################################
 # Function to check if FastAPI server is running
 def check_server_status():
     try:
@@ -1046,11 +1048,19 @@ def check_server_status():
 
 
 def get_distance_values():
+    """Fetch pipe data from the API."""
     try:
         response = requests.get("https://fastapi-test-production-1ba4.up.railway.app/get-distances/")
         if response.status_code == 200:
             data = response.json()
-            individual_pipes = [{"name": pipe["name"], "distance": pipe["distance"], "coordinates": pipe["coordinates"]} for pipe in data.get("individual_pipes", [])]
+            individual_pipes = [
+                {
+                    "name": pipe["name"],
+                    "distance": pipe["distance"],
+                    "coordinates": pipe["coordinates"]
+                }
+                for pipe in data.get("individual_pipes", [])
+            ]
             total_distance = data.get("total_distance", 0)
 
             if individual_pipes and total_distance > 0:
@@ -1063,6 +1073,94 @@ def get_distance_values():
     except Exception as e:
         st.error(f"Error fetching pipes data from backend: {e}")
         return None, None
+
+
+################################## Storage ##################################################
+
+# File to store data persistently
+DATA_FILE = "pipe_data.json"
+
+def load_data():
+    """Load pipe data from the JSON file."""
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, "r") as file:
+            return json.load(file)
+    return {}
+# Function to save data
+def save_data(data):
+    """Save pipe data to the JSON file."""
+    with open(DATA_FILE, "w") as file:
+        json.dump(data, file, indent=4)
+
+
+# Function to integrate API data into storage
+def integrate_api_data(pipe_data, api_pipes):
+    """Integrate API data into the storage system."""
+    for pipe in api_pipes:
+        pipe_name = pipe["name"]
+        if pipe_name not in pipe_data:  # Avoid duplicate entries
+            pipe_data[pipe_name] = {
+                "coordinates": pipe["coordinates"],
+                "length": pipe["distance"]
+            }
+    save_data(pipe_data)
+
+# Function to display the storage system
+def main_storage():
+    """Main function to run the Pipe Storage System app."""
+    # Load existing data
+    pipe_data = load_data()
+
+    st.title("Pipe Storage System")
+    st.subheader("Store and View Pipe Details")
+
+    # Fetch data from API and integrate into storage
+    api_pipes, total_distance = get_distance_values()
+    if api_pipes:
+        integrate_api_data(pipe_data, api_pipes)
+        st.success("Fetched and integrated pipe data from API successfully!")
+        st.write(f"Total Distance from API: {total_distance} meters")
+
+    # Add New Pipe Interface
+    st.header("Add New Pipe")
+    with st.form("add_pipe_form"):
+        pipe_name = st.text_input("Pipe Name", placeholder="Enter unique pipe name")
+        coordinates = st.text_input("Coordinates", placeholder="e.g., (10, 20)")
+        length = st.number_input("Length", min_value=0.0, step=0.1, format="%.2f")
+        submitted = st.form_submit_button("Add Pipe")
+
+        if submitted:
+            if pipe_name and coordinates:
+                if pipe_name not in pipe_data:
+                    pipe_data[pipe_name] = {
+                        "coordinates": coordinates,
+                        "length": length
+                    }
+                    save_data(pipe_data)
+                    st.success(f"Pipe '{pipe_name}' added successfully!")
+                else:
+                    st.warning("Pipe name already exists. Please use a unique name.")
+            else:
+                st.error("Pipe name and coordinates are required.")
+
+    # Display stored pipes
+    st.header("Stored Pipes")
+    if pipe_data:
+        table_data = [
+            {"Pipe Name": name, "Coordinates": details["coordinates"], "Length (meters)": details["length"]}
+            for name, details in pipe_data.items()
+        ]
+        st.subheader("Pipe Data (Table View)")
+        st.table(table_data)  # Static table
+    else:
+        st.info("No pipes stored yet. Add a new pipe to get started.")
+
+    # Clear all data
+    if st.button("Clear All Data"):
+        pipe_data.clear()
+        save_data(pipe_data)
+        st.warning("All data cleared!")
+
 
 def pipe_main():
     st.title("Pipe Selection Tool")
@@ -1121,3 +1219,4 @@ def pipe_main():
 
 # Run the main function
 pipe_main()
+main_storage()
