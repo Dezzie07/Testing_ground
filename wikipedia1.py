@@ -71,19 +71,26 @@ with st.form("add_pipe_form"):
 st.header("Stored Pipes")
 if pipe_data:
     # Convert dictionary to list of dictionaries for tabular display
-    table_data = [
-        {
-            "Pipe Name": name, 
-            "Coordinates": ', '.join([f"({x}, {y})" for x, y in details["coordinates"]]), 
+    table_data = []
+    
+    for name, details in pipe_data.items():
+        # Check if coordinates are in the expected format
+        if isinstance(details["coordinates"], list) and all(isinstance(coord, tuple) and len(coord) == 2 for coord in details["coordinates"]):
+            coordinates_str = ', '.join([f"({x}, {y})" for x, y in details["coordinates"]])
+        else:
+            coordinates_str = "Invalid coordinates format"
+
+        table_data.append({
+            "Pipe Name": name,
+            "Coordinates": coordinates_str,
             "Length (meters)": details["length"]
-        }
-        for name, details in pipe_data.items()
-    ]
+        })
+
     st.subheader("Pipe Data (Table View)")
     st.table(table_data)  # Static table
 else:
     st.info("No pipes stored yet. Add a new pipe to get started.")
-
+    
 # Option to clear all data
 if st.button("Clear All Data"):
     pipe_data = {}
