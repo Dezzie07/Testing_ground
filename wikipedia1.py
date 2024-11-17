@@ -66,7 +66,7 @@ def clear_all_data(pipe_data):
         st.warning("All data cleared!")
 
 # Main function to organize the Streamlit app
-def main():
+def main_storage():
     """Main function to run the Pipe Storage System app."""
     pipe_data = load_data()
 
@@ -78,6 +78,3 @@ def main():
     display_stored_pipes(pipe_data)
     clear_all_data(pipe_data)
 
-# Run the app
-if __name__ == "__main__":
-    main()
