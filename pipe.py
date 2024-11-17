@@ -1119,5 +1119,4 @@ def pipe_main():
             st.markdown("#### Total Pipe Summary:")
             Pipe_finder(pipe_material, pressure, total_selected_distance)
 
-# Run the main function
-pipe_main()
+
