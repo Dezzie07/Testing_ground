@@ -7,6 +7,7 @@ DATA_FILE = "pipe_data.json"
 
 # Function to load data
 def load_data():
+    """Load pipe data from the JSON file."""
     if os.path.exists(DATA_FILE):
         with open(DATA_FILE, "r") as file:
             return json.load(file)
@@ -14,18 +15,13 @@ def load_data():
 
 # Function to save data
 def save_data(data):
+    """Save pipe data to the JSON file."""
     with open(DATA_FILE, "w") as file:
         json.dump(data, file, indent=4)
 
-def app():
-# Load existing data
-    pipe_data = load_data()
-
-# Streamlit app interface
-    st.title("Pipe Storage System")
-    st.subheader("Store and View Pipe Details")
-
-# Add a new pipe
+# Function to add a new pipe
+def add_new_pipe(pipe_data):
+    """Interface for adding a new pipe."""
     st.header("Add New Pipe")
     with st.form("add_pipe_form"):
         pipe_name = st.text_input("Pipe Name", placeholder="Enter unique pipe name")
@@ -47,10 +43,11 @@ def app():
             else:
                 st.error("Pipe name and coordinates are required.")
 
-    # Display stored pipes
+# Function to display stored pipes
+def display_stored_pipes(pipe_data):
+    """Interface for displaying stored pipes."""
     st.header("Stored Pipes")
     if pipe_data:
-        # Convert dictionary to list of dictionaries for tabular display
         table_data = [
             {"Pipe Name": name, "Coordinates": details["coordinates"], "Length (meters)": details["length"]}
             for name, details in pipe_data.items()
@@ -60,11 +57,27 @@ def app():
     else:
         st.info("No pipes stored yet. Add a new pipe to get started.")
 
-
-    # Option to clear all data
+# Function to clear all pipe data
+def clear_all_data(pipe_data):
+    """Interface to clear all stored pipe data."""
     if st.button("Clear All Data"):
-        pipe_data = {}
+        pipe_data.clear()
         save_data(pipe_data)
         st.warning("All data cleared!")
 
-app()
+# Main function to organize the Streamlit app
+def main():
+    """Main function to run the Pipe Storage System app."""
+    pipe_data = load_data()
+
+    st.title("Pipe Storage System")
+    st.subheader("Store and View Pipe Details")
+
+    # Call individual functionalities
+    add_new_pipe(pipe_data)
+    display_stored_pipes(pipe_data)
+    clear_all_data(pipe_data)
+
+# Run the app
+if __name__ == "__main__":
+    main()
