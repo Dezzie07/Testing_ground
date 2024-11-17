@@ -40,12 +40,18 @@ with st.form("add_pipe_form"):
 
     if submitted:
         if pipe_name and coordinates_input:
-            # Convert the input string to a list of tuples (x, y)
+            # Try to parse the coordinates input and handle errors
             try:
-                coordinates = [
-                    tuple(map(int, coord.strip("()").split(","))) 
-                    for coord in coordinates_input.split(",")
-                ]
+                coordinates = []
+                for coord in coordinates_input.split(","):
+                    # Remove extra spaces and parentheses, and check the format
+                    coord = coord.strip()
+                    if coord.startswith("(") and coord.endswith(")"):
+                        # Remove parentheses and split by comma
+                        x, y = coord[1:-1].split(",")
+                        coordinates.append((int(x.strip()), int(y.strip())))
+                    else:
+                        raise ValueError("Invalid coordinate format")
                 
                 if pipe_name not in pipe_data:
                     pipe_data[pipe_name] = {
@@ -56,8 +62,8 @@ with st.form("add_pipe_form"):
                     st.success(f"Pipe '{pipe_name}' added successfully!")
                 else:
                     st.warning("Pipe name already exists. Please use a unique name.")
-            except ValueError:
-                st.error("Invalid coordinate format. Ensure coordinates are in the form (x, y).")
+            except ValueError as e:
+                st.error(f"Error parsing coordinates: {e}")
         else:
             st.error("Pipe name and coordinates are required.")
 
