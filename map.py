@@ -1114,55 +1114,53 @@ def main_storage():
     st.title("Pipe Storage System")
     st.subheader("Store and View Pipe Details")
 
-    # Handle the "Save pipe data" button
-    if st.button("Save pipe data"):
         
-        # Fetch data from API and integrate into storage
-        api_pipes, total_distance = get_distance_values()
-        if api_pipes:
-            integrate_api_data(pipe_data, api_pipes)
-            st.success("Fetched and integrated pipe data from API successfully!")
-            st.write(f"Total Distance from API: {total_distance} meters")
-    
-        # Add New Pipe Interface
-        st.header("Add New Pipe")
-        with st.form("add_pipe_form"):
-            pipe_name = st.text_input("Pipe Name", placeholder="Enter unique pipe name")
-            coordinates = st.text_input("Coordinates", placeholder="e.g., (10, 20)")
-            length = st.number_input("Length", min_value=0.0, step=0.1, format="%.2f")
-            submitted = st.form_submit_button("Add Pipe")
-    
-            if submitted:
-                if pipe_name and coordinates:
-                    if pipe_name not in pipe_data:
-                        pipe_data[pipe_name] = {
-                            "coordinates": coordinates,
-                            "length": length
-                        }
-                        save_data(pipe_data)
-                        st.success(f"Pipe '{pipe_name}' added successfully!")
-                    else:
-                        st.warning("Pipe name already exists. Please use a unique name.")
+    # Fetch data from API and integrate into storage
+    api_pipes, total_distance = get_distance_values()
+    if api_pipes:
+        integrate_api_data(pipe_data, api_pipes)
+        st.success("Fetched and integrated pipe data from API successfully!")
+        st.write(f"Total Distance from API: {total_distance} meters")
+
+    # Add New Pipe Interface
+    st.header("Add New Pipe")
+    with st.form("add_pipe_form"):
+        pipe_name = st.text_input("Pipe Name", placeholder="Enter unique pipe name")
+        coordinates = st.text_input("Coordinates", placeholder="e.g., (10, 20)")
+        length = st.number_input("Length", min_value=0.0, step=0.1, format="%.2f")
+        submitted = st.form_submit_button("Add Pipe")
+
+        if submitted:
+            if pipe_name and coordinates:
+                if pipe_name not in pipe_data:
+                    pipe_data[pipe_name] = {
+                        "coordinates": coordinates,
+                        "length": length
+                    }
+                    save_data(pipe_data)
+                    st.success(f"Pipe '{pipe_name}' added successfully!")
                 else:
-                    st.error("Pipe name and coordinates are required.")
-    
-        # Display stored pipes
-        st.header("Stored Pipes")
-        if pipe_data:
-            table_data = [
-                {"Pipe Name": name, "Coordinates": details["coordinates"], "Length (meters)": details["length"]}
-                for name, details in pipe_data.items()
-            ]
-            st.subheader("Pipe Data (Table View)")
-            st.table(table_data)  # Static table
-        else:
-            st.info("No pipes stored yet. Add a new pipe to get started.")
-    
-        # Clear all data
-        if st.button("Clear All Data"):
-            pipe_data.clear()
-            save_data(pipe_data)
-            st.warning("All data cleared!")
+                    st.warning("Pipe name already exists. Please use a unique name.")
+            else:
+                st.error("Pipe name and coordinates are required.")
+
+    # Display stored pipes
+    st.header("Stored Pipes")
+    if pipe_data:
+        table_data = [
+            {"Pipe Name": name, "Coordinates": details["coordinates"], "Length (meters)": details["length"]}
+            for name, details in pipe_data.items()
+        ]
+        st.subheader("Pipe Data (Table View)")
+        st.table(table_data)  # Static table
+    else:
+        st.info("No pipes stored yet. Add a new pipe to get started.")
+
+    # Clear all data
+    if st.button("Clear All Data"):
+        pipe_data.clear()
+        save_data(pipe_data)
+        st.warning("All data cleared!")
 
 
 def pipe_main():
