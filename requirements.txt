@@ -5,3 +5,5 @@ requests
 fastapi
 uvicorn
 pydantic
+os
+json
