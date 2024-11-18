@@ -4,6 +4,7 @@ import pandas as pd
 import math
 import requests
 import json
+import io
 import os
 import streamlit.components.v1 as components
 from streamlit_javascript import st_javascript as stjs 
@@ -1139,6 +1140,19 @@ def main_storage():
         ]
         st.subheader("Pipe Data (Table View)")
         st.table(table_data)  # Static table
+
+         # Convert table data to a DataFrame for download
+        df = pd.DataFrame(table_data)
+
+        # Download button for the table
+        csv_data = io.StringIO()
+        df.to_csv(csv_data, index=False)
+        st.download_button(
+            label="Download Table as CSV",
+            data=csv_data.getvalue(),
+            file_name="pipe_data.csv",
+            mime="text/csv"
+        )
 
         # Delete Pipe Interface
         st.header("Delete a Pipe")
