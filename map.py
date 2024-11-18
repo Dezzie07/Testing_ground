@@ -1098,12 +1098,21 @@ def integrate_api_data(pipe_data, api_pipes):
     """Integrate API data into the storage system."""
     for pipe in api_pipes:
         pipe_name = pipe["name"]
-        # Update or add the pipe data
-        pipe_data[pipe_name] = {
-            "coordinates": pipe["coordinates"],
-            "length": pipe["distance"]
-        }
+        if pipe_name not in pipe_data:  # Avoid duplicate entries
+            pipe_data[pipe_name] = {
+                "coordinates": pipe["coordinates"],
+                "length": pipe["distance"]
+            }
     save_data(pipe_data)
+
+# Function to delete a specific pipe by name
+def delete_pipe(pipe_data, pipe_name):
+    """Delete a specific pipe by name from the storage."""
+    if pipe_name in pipe_data:
+        del pipe_data[pipe_name]
+        save_data(pipe_data)
+        return True
+    return False
 
 # Function to display the storage system
 def main_storage():
@@ -1114,14 +1123,12 @@ def main_storage():
     st.title("Pipe Storage System")
     st.subheader("Store and View Pipe Details")
 
-        
     # Fetch data from API and integrate into storage
     api_pipes, total_distance = get_distance_values()
     if api_pipes:
         integrate_api_data(pipe_data, api_pipes)
         st.success("Fetched and integrated pipe data from API successfully!")
         st.write(f"Total Distance from API: {total_distance} meters")
-
 
     # Display stored pipes
     st.header("Stored Pipes")
@@ -1132,15 +1139,29 @@ def main_storage():
         ]
         st.subheader("Pipe Data (Table View)")
         st.table(table_data)  # Static table
+
+        # Delete Pipe Interface
+        st.header("Delete a Pipe")
+        with st.form("delete_pipe_form"):
+            pipe_name_to_delete = st.text_input("Pipe Name to Delete", placeholder="Enter pipe name")
+            delete_submitted = st.form_submit_button("Delete Pipe")
+
+            if delete_submitted:
+                if pipe_name_to_delete:
+                    if delete_pipe(pipe_data, pipe_name_to_delete):
+                        st.success(f"Pipe '{pipe_name_to_delete}' deleted successfully!")
+                    else:
+                        st.error(f"Pipe '{pipe_name_to_delete}' not found.")
+                else:
+                    st.error("Pipe name is required to delete.")
     else:
         st.info("No pipes stored yet. Add a new pipe to get started.")
 
     # Clear all data
-    if st.button("Clear All Data"):
+    if st.button("Refresh data"):  # From clear all data to refresh data
         pipe_data.clear()
         save_data(pipe_data)
-        st.warning("All data cleared!")
-
+        st.warning("All data is refreshed")
 
 def pipe_main():
     st.title("Pipe Selection Tool")
