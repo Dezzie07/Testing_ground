@@ -1098,11 +1098,11 @@ def integrate_api_data(pipe_data, api_pipes):
     """Integrate API data into the storage system."""
     for pipe in api_pipes:
         pipe_name = pipe["name"]
-        if pipe_name not in pipe_data:  # Avoid duplicate entries
-            pipe_data[pipe_name] = {
-                "coordinates": pipe["coordinates"],
-                "length": pipe["distance"]
-            }
+        # Update or add the pipe data
+        pipe_data[pipe_name] = {
+            "coordinates": pipe["coordinates"],
+            "length": pipe["distance"]
+        }
     save_data(pipe_data)
 
 # Function to display the storage system
@@ -1122,27 +1122,6 @@ def main_storage():
         st.success("Fetched and integrated pipe data from API successfully!")
         st.write(f"Total Distance from API: {total_distance} meters")
 
-    # Add New Pipe Interface
-    st.header("Add New Pipe")
-    with st.form("add_pipe_form"):
-        pipe_name = st.text_input("Pipe Name", placeholder="Enter unique pipe name")
-        coordinates = st.text_input("Coordinates", placeholder="e.g., (10, 20)")
-        length = st.number_input("Length", min_value=0.0, step=0.1, format="%.2f")
-        submitted = st.form_submit_button("Add Pipe")
-
-        if submitted:
-            if pipe_name and coordinates:
-                if pipe_name not in pipe_data:
-                    pipe_data[pipe_name] = {
-                        "coordinates": coordinates,
-                        "length": length
-                    }
-                    save_data(pipe_data)
-                    st.success(f"Pipe '{pipe_name}' added successfully!")
-                else:
-                    st.warning("Pipe name already exists. Please use a unique name.")
-            else:
-                st.error("Pipe name and coordinates are required.")
 
     # Display stored pipes
     st.header("Stored Pipes")
