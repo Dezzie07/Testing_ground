@@ -882,14 +882,14 @@ def B1001_filter(P, distanceValue):
                 'Total Cost (Euro)': B1001_data_dict['Total Cost (Euro)'][i] 
             })
 
+
+    # Display all available pipes or a message if none found
     if not available_pipes:
         st.write(f"No pipes found for the pressure of {P} bar.")
     else:
-        df = pd.DataFrame(available_pipes)
-        cheapest_pipe = df.loc[df['Total Cost (Euro)'].idxmin()]
-        
-        st.write(f"Cheapest available ASTM A106 grade B carbon steel pipe for {P} bar or higher pressure:")
-        st.dataframe(cheapest_pipe.to_frame().T) 
+        df = pd.DataFrame(available_pipes)  # Create a DataFrame with all available options
+        st.write(f"Available ASTM A106 grade B carbon steel pipes for {P} bar or higher pressure:")
+        st.dataframe(df)  # Display the DataFrame in Streamlit
 
 
 # Similar filters for B1003, B1005, and B1008 (will follow the same pattern)
@@ -912,13 +912,14 @@ def B1003_filter(P, distanceValue):
                 'Total Cost (Euro)': B1003_data_dict['Total Cost (Euro)'][i]
             })
 
+
+    # Display all available pipes or a message if none found
     if not available_pipes:
         st.write(f"No pipes found for the pressure of {P} bar.")
     else:
-         df = pd.DataFrame(available_pipes)
-         cheapest_pipe = df.loc[df['Total Cost (Euro)'].idxmin()]
-         st.write(f"Cheapest available ASTM A106 grade B extra strong carbon steel pipe for {P} bar or higher pressure:")
-         st.dataframe(cheapest_pipe.to_frame().T) 
+        df = pd.DataFrame(available_pipes)  # Create a DataFrame with all available options
+        st.write(f"Available ASTM A106 grade B eztra strong carbon steel pipes for {P} bar or higher pressure:")
+        st.dataframe(df)  # Display the DataFrame in Streamlit
 
 def B1005_filter(P, distanceValue):
     B1005_data_dict['External diameter (mm)'] = list(map(float, B1005_data_dict['External diameter (mm)']))
@@ -939,13 +940,14 @@ def B1005_filter(P, distanceValue):
                 'Total Cost (Euro)': B1005_data_dict['Total Cost (Euro)'][i]
             })
 
+
+    # Display all available pipes or a message if none found
     if not available_pipes:
         st.write(f"No pipes found for the pressure of {P} bar.")
     else:
-        df = pd.DataFrame(available_pipes)
-        cheapest_pipe = df.loc[df['Total Cost (Euro)'].idxmin()]
-        st.write(f"Cheapest available 304L stainless steel pipe for {P} bar or higher pressure:")
-        st.dataframe(cheapest_pipe.to_frame().T) 
+        df = pd.DataFrame(available_pipes)  # Create a DataFrame with all available options
+        st.write(f"Available 304L stainles steel pipes for {P} bar or higher pressure:")
+        st.dataframe(df)  # Display the DataFrame in Streamlit
 
 def B10051_filter(P, distanceValue):
     B10051_data_dict['External diameter (mm)'] = list(map(float, B10051_data_dict['External diameter (mm)']))
@@ -966,13 +968,13 @@ def B10051_filter(P, distanceValue):
                 'Total Cost (Euro)': B10051_data_dict['Total Cost (Euro)'][i]
             })
 
+    # Display all available pipes or a message if none found
     if not available_pipes:
         st.write(f"No pipes found for the pressure of {P} bar.")
     else:
-        df = pd.DataFrame(available_pipes)
-        cheapest_pipe = df.loc[df['Total Cost (Euro)'].idxmin()]
-        st.write(f"Cheapest available 316L stainless steel pipe for {P} bar or higher pressure:")
-        st.dataframe(cheapest_pipe.to_frame().T) 
+        df = pd.DataFrame(available_pipes)  # Create a DataFrame with all available options
+        st.write(f"Available 316L stainles steel pipes for {P} bar or higher pressure:")
+        st.dataframe(df)  # Display the DataFrame in Streamlit
 
 
 def B1008_filter(P, distanceValue):
@@ -994,13 +996,13 @@ def B1008_filter(P, distanceValue):
                 'Total Cost (Euro)': B1008_data_dict['Total Cost (Euro)'][i]
             })
 
+     # Display all available pipes or a message if none found
     if not available_pipes:
         st.write(f"No pipes found for the pressure of {P} bar.")
     else:
-        df = pd.DataFrame(available_pipes)
-        cheapest_pipe = df.loc[df['Total Cost (Euro)'].idxmin()]
-        st.write(f"Cheapest available PVC pipe for {P} bar or higher pressure:")
-        st.dataframe(cheapest_pipe.to_frame().T) 
+        df = pd.DataFrame(available_pipes)  # Create a DataFrame with all available options
+        st.write(f"Available PVC pipes for {P} bar or higher pressure:")
+        st.dataframe(df)  # Display the DataFrame in Streamlit
 
 # Function to choose pipe and filter based on material
 def Pipe_finder(material, P, distanceValue):
