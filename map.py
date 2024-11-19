@@ -1117,6 +1117,15 @@ def delete_pipe(pipe_data, pipe_name):
         return True
     return False
 
+# Helper function to update the medium for a specific pipe
+def update_pipe_medium(pipe_data, pipe_name, medium):
+    """Update the medium for a specific pipe in storage."""
+    if pipe_name in pipe_data:
+        pipe_data[pipe_name]["medium"] = medium
+        save_data(pipe_data)
+        return True
+    return False
+
 # Function to display the storage system
 def main_storage():
     """Main function to run the Pipe Storage System app."""
@@ -1137,16 +1146,19 @@ def main_storage():
     st.header("Stored Pipes")
     if pipe_data:
         table_data = [
-            {"Pipe Name": name, "Coordinates": details["coordinates"], "Length (meters)": details["length"]}
+            {
+                "Pipe Name": name,
+                "Coordinates": details["coordinates"],
+                "Length (meters)": details["length"],
+                "Medium": details.get("medium", "Not assigned")
+            }
             for name, details in pipe_data.items()
         ]
         st.subheader("Pipe Data (Table View)")
         st.table(table_data)  # Static table
 
-         # Convert table data to a DataFrame for download
-        df = pd.DataFrame(table_data)
-
         # Download button for the table
+        df = pd.DataFrame(table_data)
         csv_data = io.StringIO()
         df.to_csv(csv_data, index=False)
         st.download_button(
@@ -1179,6 +1191,8 @@ def main_storage():
         save_data(pipe_data)
         st.warning("All data is refreshed")
 
+
+# Function to assign mediums in pipe_main()
 def pipe_main():
     st.title("Pipe Selection Tool")
 
@@ -1194,6 +1208,9 @@ def pipe_main():
             st.warning("No pipe data available yet. Please draw lines on the map to proceed.")
         else:
             selected_pipes = individual_pipes  # Automatically select all individual pipes
+
+            # Load existing data
+            pipe_data = load_data()
 
             # Calculate and display individual pipe information
             st.markdown("### Selected Pipes Summary")
@@ -1211,6 +1228,9 @@ def pipe_main():
                 pipe_material = choose_pipe_material(pressure, temperature, medium)
                 st.markdown(f"**Selected Pipe Material:** {pipe_material}")
 
+                # Update the medium in storage
+                update_pipe_medium(pipe_data, pipe['name'], medium)
+
                 # Calculate the stress for the given material
                 stress_calculator(pipe_material, temperature)
 
@@ -1218,6 +1238,9 @@ def pipe_main():
                 st.markdown("#### Individual Pipe Summary:")
                 Pipe_finder(pipe_material, pressure, pipe['distance'])
                 st.markdown("---")
+
+            # Save updated pipe data
+            save_data(pipe_data)
 
             # Calculate and display total information for all selected pipes
             st.markdown("### Total Information for All Selected Pipes")
