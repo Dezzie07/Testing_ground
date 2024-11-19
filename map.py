@@ -1137,9 +1137,9 @@ def main_storage():
 
     api_pipes, total_distance = get_distance_values()
     if api_pipes:
-    integrate_api_data(pipe_data, api_pipes)
-    st.success("Fetched and integrated pipe data from API successfully!")
-    st.write(f"Total Distance from API: {total_distance} meters")
+        integrate_api_data(pipe_data, api_pipes)
+        st.success("Fetched and integrated pipe data from API successfully!")
+        st.write(f"Total Distance from API: {total_distance} meters")
 
     # Display stored pipes
     st.header("Stored Pipes")
