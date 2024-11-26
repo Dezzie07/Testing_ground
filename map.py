@@ -1215,6 +1215,53 @@ def update_pipe_medium(pipe_data, pipe_name, medium):
         return True
     return False
 
+def display_interactive_table(pipe_data):
+    """Display an interactive table for selecting and viewing pipe data."""
+    # Convert pipe_data to DataFrame
+    table_data = [
+        {
+            "Pipe Name": name,
+            "Coordinates": details["coordinates"],
+            "Length (meters)": details["length"],
+            "Medium": details.get("medium", "Not assigned")
+        }
+        for name, details in pipe_data.items()
+    ]
+    df = pd.DataFrame(table_data)
+
+    # Interactive Table: Select Columns
+    st.subheader("Interactive Pipe Data Table")
+    selected_columns = st.multiselect(
+        "Select columns to display:",
+        options=df.columns,
+        default=df.columns.tolist()
+    )
+
+    # Interactive Table: Select Rows
+    row_labels = df.index.astype(str)  # Use index as labels
+    selected_rows = st.multiselect(
+        "Select rows to display:",
+        options=row_labels,
+        default=row_labels.tolist()
+    )
+
+    # Filter DataFrame based on selections
+    filtered_df = df.loc[df.index.isin(map(int, selected_rows)), selected_columns]
+
+    # Display filtered table
+    st.write("### Filtered Pipe Data:")
+    st.write(filtered_df)
+
+    # Optional: Download filtered data as CSV
+    csv_data = io.StringIO()
+    filtered_df.to_csv(csv_data, index=False)
+    st.download_button(
+        label="Download Selected Data as CSV",
+        data=csv_data.getvalue(),
+        file_name="filtered_pipe_data.csv",
+        mime="text/csv"
+    )
+
 # Function to display the storage system
 def main_storage():
     """Main function to run the Pipe Storage System app."""
@@ -1233,28 +1280,9 @@ def main_storage():
     # Display stored pipes
     st.header("Stored Pipes")
     if pipe_data:
-        table_data = [
-            {
-                "Pipe Name": name,
-                "Coordinates": details["coordinates"],
-                "Length (meters)": details["length"],
-                "Medium": details.get("medium", "Not assigned")
-            }
-            for name, details in pipe_data.items()
-        ]
-        st.subheader("Pipe Data (Table View)")
-        st.table(table_data)  # Static table
-
-        # Download button for the table
-        df = pd.DataFrame(table_data)
-        csv_data = io.StringIO()
-        df.to_csv(csv_data, index=False)
-        st.download_button(
-            label="Download Table as CSV",
-            data=csv_data.getvalue(),
-            file_name="pipe_data.csv",
-            mime="text/csv"
-        )
+    display_interactive_table(pipe_data)
+else:
+    st.info("No pipes stored yet. Add a new pipe to get started.")
 
         # Delete Pipe Interface
         st.header("Delete a Pipe")
