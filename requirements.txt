@@ -1,6 +1,5 @@
 streamlit
 streamlit-javascript
-streamlit.runtime.scriptrunner
 pandas
 requests
 fastapi
