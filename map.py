@@ -1297,7 +1297,8 @@ def main_storage():
                 if delete_pipe(pipe_data, pipe_name_to_delete):
                     st.success(f"Pipe '{pipe_name_to_delete}' deleted successfully!")
                     # Trigger st.rerun to refresh the app
-                    raise RerunException
+                    st.session_state.value = "Deleted pipe, refreshing..."
+                    st.rerun()
                 else:
                     st.error(f"Pipe '{pipe_name_to_delete}' not found.")
             else:
