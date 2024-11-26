@@ -1224,7 +1224,7 @@ def display_interactive_table(pipe_data):
             "Pipe Name": name,
             "Coordinates": details["coordinates"],
             "Length (meters)": details["length"],
-            "Landmarks": details["landmarks"] if isinstance(details["landmarks"], list) else [],  # Ensure landmarks is a list
+            "Landmarks": details.get("landmarks", []),  # Use .get() to avoid KeyError
             "Medium": details.get("medium", "Not assigned")
         }
         for name, details in pipe_data.items()
@@ -1263,6 +1263,7 @@ def display_interactive_table(pipe_data):
         file_name="filtered_pipe_data.csv",
         mime="text/csv"
     )
+
 # Main function to run the Pipe Storage System app
 def main_storage():
     """Main function to run the Pipe Storage System app."""
