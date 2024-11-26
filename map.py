@@ -16,6 +16,9 @@ import uvicorn
 from streamlit.runtime.scriptrunner import RerunException
 from streamlit.runtime.scriptrunner import ScriptRunner
 
+# Set page layout to wide
+st.set_page_config(layout='wide')
+
 # Set up a title for the app
 st.title("Piping tool")
 
