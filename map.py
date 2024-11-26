@@ -1139,7 +1139,6 @@ def get_distance_values():
         return None, None
         
 def get_landmarks():
-    """Fetch landmarks data from the FastAPI backend."""
     try:
         response = requests.get("https://fastapi-test-production-1ba4.up.railway.app/get-landmarks/")
         if response.status_code == 200:
@@ -1148,13 +1147,13 @@ def get_landmarks():
                 return data["landmarks"]
             else:
                 st.error("No landmarks found.")
-                return []
+                return {}
         else:
             st.error(f"Error fetching landmarks: {response.status_code}")
-            return []
+            return {}
     except Exception as e:
         st.error(f"Exception occurred while fetching landmarks: {e}")
-        return []
+        return {}
 
 
 def display_landmarks(landmarks):
@@ -1187,9 +1186,8 @@ def save_data(data):
         json.dump(data, file, indent=4)
 
 
-# Function to integrate API data (pipes + landmarks) into the storage system
 def integrate_api_data(pipe_data, api_pipes):
-    """Integrate API data into the storage system, including landmarks."""
+    """Integrate API data into the storage system."""
     landmarks = get_landmarks()  # Fetch landmarks data
     for pipe in api_pipes:
         pipe_name = pipe["name"]
@@ -1197,7 +1195,7 @@ def integrate_api_data(pipe_data, api_pipes):
             pipe_data[pipe_name] = {
                 "coordinates": pipe["coordinates"],
                 "length": pipe["distance"],
-                "landmarks": landmarks  # Save the landmarks for each pipe. But not succesful
+                "landmarks": landmarks.get(pipe_name, [])  # Map landmarks to each pipe by name
             }
     save_data(pipe_data)
 
@@ -1218,16 +1216,15 @@ def update_pipe_medium(pipe_data, pipe_name, medium):
         return True
     return False
 
-# Function to display the interactive table with pipe data and landmarks
 def display_interactive_table(pipe_data):
     """Display an interactive table for selecting and viewing pipe data."""
-    # Convert pipe_data to DataFrame including landmarks
+    # Convert pipe_data to DataFrame, displaying landmarks as a list
     table_data = [
         {
             "Pipe Name": name,
             "Coordinates": details["coordinates"],
             "Length (meters)": details["length"],
-             "Landmarks": ', '.join(details["landmarks"]) if isinstance(details["landmarks"], list) else "No landmarks",  # Join landmarks into a single string
+            "Landmarks": details["landmarks"] if isinstance(details["landmarks"], list) else [],  # Ensure landmarks is a list
             "Medium": details.get("medium", "Not assigned")
         }
         for name, details in pipe_data.items()
@@ -1266,7 +1263,6 @@ def display_interactive_table(pipe_data):
         file_name="filtered_pipe_data.csv",
         mime="text/csv"
     )
-    
 # Main function to run the Pipe Storage System app
 def main_storage():
     """Main function to run the Pipe Storage System app."""
