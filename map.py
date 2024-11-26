@@ -1279,10 +1279,10 @@ def main_storage():
 
     # Display stored pipes
     st.header("Stored Pipes")
-         if pipe_data:
-             display_interactive_table(pipe_data)
-        else:
-        st.info("No pipes stored yet. Add a new pipe to get started.")
+    if pipe_data:
+        display_interactive_table(pipe_data)
+     else:
+         st.info("No pipes stored yet. Add a new pipe to get started.")
 
         # Delete Pipe Interface
         st.header("Delete a Pipe")
