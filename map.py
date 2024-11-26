@@ -1187,15 +1187,17 @@ def save_data(data):
         json.dump(data, file, indent=4)
 
 
-# Function to integrate API data into storage
+# Function to integrate API data (pipes + landmarks) into the storage system
 def integrate_api_data(pipe_data, api_pipes):
-    """Integrate API data into the storage system."""
+    """Integrate API data into the storage system, including landmarks."""
+    landmarks = get_landmarks()  # Fetch landmarks data
     for pipe in api_pipes:
         pipe_name = pipe["name"]
         if pipe_name not in pipe_data:  # Avoid duplicate entries
             pipe_data[pipe_name] = {
                 "coordinates": pipe["coordinates"],
-                "length": pipe["distance"]
+                "length": pipe["distance"],
+                "landmarks": landmarks  # Save the landmarks for each pipe. But not succesful
             }
     save_data(pipe_data)
 
@@ -1216,14 +1218,16 @@ def update_pipe_medium(pipe_data, pipe_name, medium):
         return True
     return False
 
+# Function to display the interactive table with pipe data and landmarks
 def display_interactive_table(pipe_data):
     """Display an interactive table for selecting and viewing pipe data."""
-    # Convert pipe_data to DataFrame
+    # Convert pipe_data to DataFrame including landmarks
     table_data = [
         {
             "Pipe Name": name,
             "Coordinates": details["coordinates"],
             "Length (meters)": details["length"],
+            "Landmarks": ', '.join(details["landmarks"]),  # Join landmarks into a single string
             "Medium": details.get("medium", "Not assigned")
         }
         for name, details in pipe_data.items()
@@ -1235,7 +1239,7 @@ def display_interactive_table(pipe_data):
     selected_columns = st.multiselect(
         "Select columns to display:",
         options=df.columns,
-        default=df.columns.tolist()
+        default=df.columns.tolist()  # Default to all columns
     )
 
     # Interactive Table: Select Rows
@@ -1243,7 +1247,7 @@ def display_interactive_table(pipe_data):
     selected_rows = st.multiselect(
         "Select rows to display:",
         options=row_labels,
-        default=row_labels.tolist()
+        default=row_labels.tolist()  # Default to all rows
     )
 
     # Filter DataFrame based on selections
@@ -1262,7 +1266,7 @@ def display_interactive_table(pipe_data):
         file_name="filtered_pipe_data.csv",
         mime="text/csv"
     )
-
+    
 # Main function to run the Pipe Storage System app
 def main_storage():
     """Main function to run the Pipe Storage System app."""
