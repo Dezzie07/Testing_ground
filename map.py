@@ -1227,7 +1227,7 @@ def display_interactive_table(pipe_data):
             "Pipe Name": name,
             "Coordinates": details["coordinates"],
             "Length (meters)": details["length"],
-            "Landmarks": ', '.join(details["landmarks"]),  # Join landmarks into a single string
+             "Landmarks": ', '.join(details["landmarks"]) if isinstance(details["landmarks"], list) else "No landmarks",  # Join landmarks into a single string
             "Medium": details.get("medium", "Not assigned")
         }
         for name, details in pipe_data.items()
