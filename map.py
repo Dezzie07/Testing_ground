@@ -1284,22 +1284,20 @@ def main_storage():
     else:
         st.info("No pipes stored yet. Add a new pipe to get started.")
 
-        # Delete Pipe Interface
-        st.header("Delete a Pipe")
-        with st.form("delete_pipe_form"):
-            pipe_name_to_delete = st.text_input("Pipe Name to Delete", placeholder="Enter pipe name")
-            delete_submitted = st.form_submit_button("Delete Pipe")
+    # Delete Pipe Interface
+    st.header("Delete a Pipe")
+    with st.form("delete_pipe_form"):
+        pipe_name_to_delete = st.text_input("Pipe Name to Delete", placeholder="Enter pipe name")
+        delete_submitted = st.form_submit_button("Delete Pipe")
 
-            if delete_submitted:
-                if pipe_name_to_delete:
-                    if delete_pipe(pipe_data, pipe_name_to_delete):
-                        st.success(f"Pipe '{pipe_name_to_delete}' deleted successfully!")
-                    else:
-                        st.error(f"Pipe '{pipe_name_to_delete}' not found.")
+        if delete_submitted:
+            if pipe_name_to_delete:
+                if delete_pipe(pipe_data, pipe_name_to_delete):
+                    st.success(f"Pipe '{pipe_name_to_delete}' deleted successfully!")
                 else:
-                    st.error("Pipe name is required to delete.")
-    else:
-        st.info("No pipes stored yet. Add a new pipe to get started.")
+                    st.error(f"Pipe '{pipe_name_to_delete}' not found.")
+            else:
+                st.error("Pipe name is required to delete.")
 
     # Clear all data
     if st.button("Refresh data"):  # From clear all data to refresh data
