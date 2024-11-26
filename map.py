@@ -1263,7 +1263,7 @@ def display_interactive_table(pipe_data):
         mime="text/csv"
     )
 
-# Function to display the storage system
+# Main function to run the Pipe Storage System app
 def main_storage():
     """Main function to run the Pipe Storage System app."""
     # Load existing data
@@ -1272,6 +1272,7 @@ def main_storage():
     st.title("Pipe Storage System")
     st.subheader("Store and View Pipe Details")
 
+    # Fetch and integrate API pipe data
     api_pipes, total_distance = get_distance_values()
     if api_pipes:
         integrate_api_data(pipe_data, api_pipes)
@@ -1285,28 +1286,29 @@ def main_storage():
     else:
         st.info("No pipes stored yet. Add a new pipe to get started.")
 
-# Implementation in the Pipe Storage System
-st.header("Delete a Pipe")
-with st.form("delete_pipe_form"):
-    pipe_name_to_delete = st.text_input("Pipe Name to Delete", placeholder="Enter pipe name")
-    delete_submitted = st.form_submit_button("Delete Pipe")
+    # Delete Pipe Interface
+    st.header("Delete a Pipe")
+    with st.form("delete_pipe_form"):
+        pipe_name_to_delete = st.text_input("Pipe Name to Delete", placeholder="Enter pipe name")
+        delete_submitted = st.form_submit_button("Delete Pipe")
 
-    if delete_submitted:
-        if pipe_name_to_delete:
-            if delete_pipe(pipe_data, pipe_name_to_delete):
-                st.success(f"Pipe '{pipe_name_to_delete}' deleted successfully!")
-                # Trigger st.rerun to refresh the app
-                raise RerunException(ScriptRunner.get_instance())
+        if delete_submitted:
+            if pipe_name_to_delete:
+                if delete_pipe(pipe_data, pipe_name_to_delete):
+                    st.success(f"Pipe '{pipe_name_to_delete}' deleted successfully!")
+                    # Trigger st.rerun to refresh the app
+                    raise RerunException(ScriptRunner.get_instance())
+                else:
+                    st.error(f"Pipe '{pipe_name_to_delete}' not found.")
             else:
-                st.error(f"Pipe '{pipe_name_to_delete}' not found.")
-        else:
-            st.error("Pipe name is required to delete.")
+                st.error("Pipe name is required to delete.")
 
-    # Clear all data
+    # Clear all data button
     if st.button("Refresh data"):  # From clear all data to refresh data
         pipe_data.clear()
         save_data(pipe_data)
-        st.warning("All data is refreshed")
+        st.warning("All data is refreshed.")
+
 
 
 # Function to assign mediums in pipe_main()
