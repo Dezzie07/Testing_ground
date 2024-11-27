@@ -1199,7 +1199,7 @@ def save_data(data):
         json.dump(data, file, indent=4)
 
 
-def integrate_api_data(pipe_data, api_pipes):
+''''def integrate_api_data(pipe_data, api_pipes):
     """Integrate API data into the storage system."""
     landmarks = get_landmarks()  # Fetch landmarks data
     for pipe in api_pipes:
@@ -1210,6 +1210,18 @@ def integrate_api_data(pipe_data, api_pipes):
                 "length": pipe["distance"],
                 "landmarks": landmarks['name'],
                 #"landmark 2": landmarks['name'] # Map landmarks to each pipe by name
+            }
+    save_data(pipe_data)''''
+
+def integrate_api_data(pipe_data, api_pipes, landmarks): #added
+    """Integrate API data into the storage system, including landmarks."""
+    for pipe in api_pipes:
+        pipe_name = pipe["name"]
+        if pipe_name not in pipe_data:  # Avoid duplicate entries
+            pipe_data[pipe_name] = {
+                "coordinates": pipe["coordinates"],
+                "length": pipe["distance"],
+                "landmarks": landmarks  # Add landmarks data
             }
     save_data(pipe_data)
 
@@ -1232,17 +1244,18 @@ def update_pipe_medium(pipe_data, pipe_name, medium):
 
 def display_interactive_table(pipe_data):
     """Display an interactive table for selecting and viewing pipe data."""
-    # Convert pipe_data to DataFrame, displaying landmarks as a list
+    # Prepare data for the table
     table_data = [
         {
             "Pipe Name": name,
             "Coordinates": details["coordinates"],
             "Length (meters)": details["length"],
-            "Landmarks": details["landmarks"],  # Use .get() to avoid KeyError
-            "Medium": details.get("medium", "Not assigned")
+            "Landmarks": ", ".join(landmarks.keys()) if "landmarks" in details and isinstance(details["landmarks"], dict) else "None",  # Convert landmarks to string
         }
         for name, details in pipe_data.items()
     ]
+
+    # Convert to a Pandas DataFrame
     df = pd.DataFrame(table_data)
 
     # Interactive Table: Select Columns
@@ -1250,7 +1263,7 @@ def display_interactive_table(pipe_data):
     selected_columns = st.multiselect(
         "Select columns to display:",
         options=df.columns,
-        default=df.columns.tolist()  # Default to all columns
+        default=df.columns.tolist()
     )
 
     # Interactive Table: Select Rows
@@ -1258,25 +1271,29 @@ def display_interactive_table(pipe_data):
     selected_rows = st.multiselect(
         "Select rows to display:",
         options=row_labels,
-        default=row_labels.tolist()  # Default to all rows
+        default=row_labels.tolist()
     )
 
-    # Filter DataFrame based on selections
+    # Filter DataFrame based on user selections
     filtered_df = df.loc[df.index.isin(map(int, selected_rows)), selected_columns]
 
-    # Display filtered table
-    st.write("### Filtered Pipe Data:")
-    st.write(filtered_df)
+    # Display the filtered table
+    st.write("### Filtered Pipe Data")
+    st.dataframe(filtered_df, use_container_width=True)
 
     # Optional: Download filtered data as CSV
-    csv_data = io.StringIO()
-    filtered_df.to_csv(csv_data, index=False)
-    st.download_button(
-        label="Download Selected Data as CSV",
-        data=csv_data.getvalue(),
-        file_name="filtered_pipe_data.csv",
-        mime="text/csv"
-    )
+    if not filtered_df.empty:
+        csv_data = io.StringIO()
+        filtered_df.to_csv(csv_data, index=False)
+        st.download_button(
+            label="Download Selected Data as CSV",
+            data=csv_data.getvalue(),
+            file_name="filtered_pipe_data.csv",
+            mime="text/csv"
+        )
+    else:
+        st.info("No data to display. Add or select data to view here.")
+
 
 # Main function to run the Pipe Storage System app
 def main_storage():
@@ -1333,12 +1350,14 @@ def pipe_main():
 
     # Fetch and display landmarks
     landmarks = get_landmarks()
+    
     if landmarks:
-        st.markdown("### Landmarks Summary")
-        for landmark in landmarks:
-            st.markdown(f"- **Name**: {landmark['name']}")
-            st.markdown(f"  **Coordinates**: {landmark['coordinates']}")
-        st.markdown("---")
+        st.subheader("Landmark Data")
+        for name, details in landmarks.items:
+            st.write(f"**{name}**")
+            st.write(f"Color: {details['color']}")
+            st.write(f"Coordinates: {details['coordinates']}")
+            st.markdown("---")
     else:
         st.info("No landmarks found.")
 
