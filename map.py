@@ -1192,12 +1192,12 @@ def load_data():
         with open(DATA_FILE, "r") as file:
             return json.load(file)
     return {}
+    
 # Function to save data
 def save_data(data):
     """Save pipe data to the JSON file."""
     with open(DATA_FILE, "w") as file:
         json.dump(data, file, indent=4)
-
 
 def integrate_api_data(pipe_data, api_pipes, landmarks):
     """Integrate API data into the storage system, including landmarks."""
@@ -1243,7 +1243,7 @@ def update_pipe_medium(pipe_data, pipe_name, medium):
 
 def display_interactive_table(pipe_data):
     """Display an interactive table for selecting and viewing pipe and landmark data."""
-    
+
     # Separate pipes and landmarks
     pipe_table_data = []
     landmark_table_data = []
@@ -1262,45 +1262,92 @@ def display_interactive_table(pipe_data):
                 "Coordinates": details["coordinates"]
             })
 
-    # Convert pipe data to a DataFrame
+    # Convert pipe and landmark data to DataFrames
     pipe_df = pd.DataFrame(pipe_table_data)
     landmark_df = pd.DataFrame(landmark_table_data)
 
-    # Display pipes data
+    # Display Pipes Data with Interactivity
     st.subheader("Pipes Data Table")
     if not pipe_df.empty:
-        st.write("### Pipe Data")
-        st.dataframe(pipe_df, use_container_width=True)
+        st.write("### Pipes Data")
+        # Step 1: Column Selection
+        pipe_selected_columns = st.multiselect(
+            "Select columns to display (Pipes):",
+            options=pipe_df.columns,
+            default=pipe_df.columns.tolist()
+        )
 
-        # Optional: Download pipe data as CSV
-        csv_data = io.StringIO()
-        pipe_df.to_csv(csv_data, index=False)
+        # Step 2: Row Selection
+        pipe_row_labels = pipe_df.index.astype(str)
+        pipe_selected_rows = st.multiselect(
+            "Select rows to display (Pipes):",
+            options=pipe_row_labels,
+            default=pipe_row_labels.tolist()
+        )
+
+        # Step 3: Filter DataFrame
+        pipe_filtered_df = pipe_df.loc[
+            pipe_df.index.isin(map(int, pipe_selected_rows)),
+            pipe_selected_columns
+        ]
+
+        # Display Filtered Pipe Data
+        st.write("### Filtered Pipes Data")
+        st.dataframe(pipe_filtered_df, use_container_width=True)
+
+        # Optional: Download Pipe Data as CSV
+        pipe_csv_data = io.StringIO()
+        pipe_filtered_df.to_csv(pipe_csv_data, index=False)
         st.download_button(
-            label="Download Pipe Data as CSV",
-            data=csv_data.getvalue(),
-            file_name="pipe_data.csv",
+            label="Download Filtered Pipe Data as CSV",
+            data=pipe_csv_data.getvalue(),
+            file_name="filtered_pipe_data.csv",
             mime="text/csv"
         )
     else:
         st.info("No pipe data to display.")
 
-    # Display landmarks data
+    # Display Landmarks Data with Interactivity
     st.subheader("Landmarks Data Table")
     if not landmark_df.empty:
-        st.write("### Landmark Data")
-        st.dataframe(landmark_df, use_container_width=True)
+        st.write("### Landmarks Data")
+        # Step 1: Column Selection
+        landmark_selected_columns = st.multiselect(
+            "Select columns to display (Landmarks):",
+            options=landmark_df.columns,
+            default=landmark_df.columns.tolist()
+        )
 
-        # Optional: Download landmark data as CSV
-        csv_data = io.StringIO()
-        landmark_df.to_csv(csv_data, index=False)
+        # Step 2: Row Selection
+        landmark_row_labels = landmark_df.index.astype(str)
+        landmark_selected_rows = st.multiselect(
+            "Select rows to display (Landmarks):",
+            options=landmark_row_labels,
+            default=landmark_row_labels.tolist()
+        )
+
+        # Step 3: Filter DataFrame
+        landmark_filtered_df = landmark_df.loc[
+            landmark_df.index.isin(map(int, landmark_selected_rows)),
+            landmark_selected_columns
+        ]
+
+        # Display Filtered Landmark Data
+        st.write("### Filtered Landmarks Data")
+        st.dataframe(landmark_filtered_df, use_container_width=True)
+
+        # Optional: Download Landmark Data as CSV
+        landmark_csv_data = io.StringIO()
+        landmark_filtered_df.to_csv(landmark_csv_data, index=False)
         st.download_button(
-            label="Download Landmark Data as CSV",
-            data=csv_data.getvalue(),
-            file_name="landmark_data.csv",
+            label="Download Filtered Landmark Data as CSV",
+            data=landmark_csv_data.getvalue(),
+            file_name="filtered_landmark_data.csv",
             mime="text/csv"
         )
     else:
         st.info("No landmark data to display.")
+
 
 
 # Main function to run the Pipe Storage System app
