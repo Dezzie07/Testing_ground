@@ -444,7 +444,7 @@ function sendLandmarkDataToBackend() {{
         color: featureColors[landmark.id] || "black"
     }}));
 
-    fetch("https://fastapi-test-production-1ba4.up.railway.app/send-pipes/", {{
+    fetch("https://fastapi-test-production-1ba4.up.railway.app/get-distances/", {{
         method: "POST",
         headers: {{
             "Content-Type": "application/json",
@@ -1147,7 +1147,7 @@ def get_landmarks():
     Fetch landmarks data from the FastAPI backend and return it as a dictionary.
     """
     try:
-        response = requests.get("https://fastapi-test-production-1ba4.up.railway.app/send-pipes/")
+        response = requests.get("https://fastapi-test-production-1ba4.up.railway.app/get-distances/")
         if response.status_code == 200:
             data = response.json()
             if data["status"] == "success":
