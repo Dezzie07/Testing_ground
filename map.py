@@ -1204,32 +1204,52 @@ def integrate_api_data(pipe_data, api_pipes, landmarks):
     
     # Add pipes to the pipe_data
     for pipe in api_pipes:
-        pipe_name = pipe["name"]
+        pipe_name = f"pipe_{pipe['name']}"  # Prefix to ensure unique keys
         if pipe_name not in pipe_data:
             pipe_data[pipe_name] = {
+                "type": "pipe",
                 "coordinates": pipe["coordinates"],
                 "length": pipe["distance"]
             }
     
     # Add landmarks to the pipe_data
     for landmark in landmarks:
-        if isinstance(landmark, dict):
-            landmark_name = landmark["name"]
+        if isinstance(landmark, dict) and "name" in landmark and "color" in landmark and "coordinates" in landmark:
+            landmark_name = f"landmark_{landmark['name']}"  # Prefix to ensure unique keys
             if landmark_name not in pipe_data:
                 pipe_data[landmark_name] = {
+                    "type": "landmark",
                     "color": landmark["color"],
-                    "coordinates": landmark["coordinates"],
-                    "type": "landmark"  # Identify entries as landmarks
+                    "coordinates": landmark["coordinates"]
                 }
-            
+    
+    # Save the updated data to the JSON file
     save_data(pipe_data)
 
-# Function to delete a specific pipe by name
+
 def delete_pipe(pipe_data, pipe_name):
-    if pipe_name in pipe_data:
-        del pipe_data[pipe_name]
-        save_data(pipe_data)
-        return True
+    """
+    Delete a specific pipe or landmark by name. Matching is case-insensitive.
+    """
+    # Normalize the pipe_name to lowercase for consistent matching
+    normalized_name = pipe_name.lower()
+
+    # Check for matching pipe (case-insensitive)
+    for name in pipe_data:
+        # Normalize stored name to lowercase for comparison
+        if normalized_name == name.lower():
+            try:
+                # Remove the pipe or landmark from the data
+                del pipe_data[name]
+                save_data(pipe_data)
+                st.success(f"Successfully deleted '{name}' from the system.")
+                return True
+            except Exception as e:
+                st.error(f"Error deleting '{name}': {e}")
+                return False
+    
+    # If no match is found
+    st.error(f"Pipe or landmark named '{pipe_name}' not found.")
     return False
 
 # Helper function to update the medium for a specific pipe
@@ -1350,7 +1370,6 @@ def display_interactive_table(pipe_data):
 
 
 
-# Main function to run the Pipe Storage System app
 def main_storage():
     """Main function to run the Pipe Storage System app."""
     # Load existing data
@@ -1367,6 +1386,8 @@ def main_storage():
         integrate_api_data(pipe_data, api_pipes, landmarks)
         st.success("Fetched and integrated pipe data from API successfully!")
         st.write(f"Total Distance from API: {total_distance} meters")
+    else:
+        st.warning("No pipe data found in the API response.")
 
     # Display stored pipes
     st.header("Stored Pipes")
@@ -1377,27 +1398,40 @@ def main_storage():
 
     # Delete Pipe Interface
     st.header("Delete a Pipe")
+    
+    # Improved form with pipe selection dropdown
     with st.form("delete_pipe_form"):
-        pipe_name_to_delete = st.text_input("Pipe Name to Delete", placeholder="Enter pipe name")
+        # Get the list of stored pipes
+        pipe_names = list(pipe_data.keys())
+        
+        if pipe_names:
+            pipe_name_to_delete = st.selectbox("Select Pipe to Delete", pipe_names, index=0)
+        else:
+            pipe_name_to_delete = None  # No pipes available for selection
+            
         delete_submitted = st.form_submit_button("Delete Pipe")
 
         if delete_submitted:
             if pipe_name_to_delete:
+                # Attempt to delete the selected pipe
                 if delete_pipe(pipe_data, pipe_name_to_delete):
                     st.success(f"Pipe '{pipe_name_to_delete}' deleted successfully!")
                     # Trigger st.rerun to refresh the app
-                    st.session_state.value = "Deleted pipe, refreshing..."
                     st.rerun()
                 else:
-                    st.error(f"Pipe '{pipe_name_to_delete}' not found.")
+                    st.error(f"An error occurred while trying to delete '{pipe_name_to_delete}'. Please try again.")
             else:
-                st.error("Pipe name is required to delete.")
+                st.error("Please select a pipe to delete from the dropdown.")
 
     # Clear all data button
-    if st.button("Refresh data"):  # From clear all data to refresh data
-        pipe_data.clear()
-        save_data(pipe_data)
-        st.warning("All data is refreshed.")
+    if st.button("Clear All Data"):  # Renamed for clarity
+        confirm_clear = st.checkbox("Are you sure you want to clear all data?")
+        if confirm_clear:
+            pipe_data.clear()
+            save_data(pipe_data)
+            st.warning("All data has been cleared.")
+        else:
+            st.info("Data was not cleared.")
 
 
 
