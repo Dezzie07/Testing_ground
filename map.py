@@ -1150,7 +1150,6 @@ def get_landmarks():
         if response.status_code == 200:
             data = response.json()
             if data["status"] == "success":
-                # Convert the landmarks list to a dictionary with names as keys
                 landmarks = {
                     landmark["name"]: {
                         "color": landmark["color"],
@@ -1199,15 +1198,38 @@ def save_data(data):
         json.dump(data, file, indent=4)
 
 
-def integrate_api_data(pipe_data, api_pipes, landmarks): #added
+def integrate_api_data(pipe_data, api_pipes, landmarks):
     """Integrate API data into the storage system, including landmarks."""
+    # Track landmark usage
+    current_landmark_index = 0
+    
     for pipe in api_pipes:
         pipe_name = pipe["name"]
         if pipe_name not in pipe_data:  # Avoid duplicate entries
+            # Associate start and end landmarks with the pipe
+            if current_landmark_index + 1 >= len(landmarks):
+                raise ValueError("Not enough landmarks to associate with pipes.")
+            
             pipe_data[pipe_name] = {
                 "coordinates": pipe["coordinates"],
-                "length": pipe["distance"], # Add landmarks data
+                "length": pipe["distance"],
+                "landmarks": {
+                    "start": landmarks[current_landmark_index]["name"],
+                    "end": landmarks[current_landmark_index + 1]["name"],
+                }
             }
+            current_landmark_index += 2  # Move to the next pair of landmarks
+    
+    # Add standalone landmarks to pipe_data
+    for x in landmarks:
+        landmark_name = x["name"]
+        if landmark_name not in pipe_data:
+            pipe_data[landmark_name] = {
+                "color": x["color"],
+                "coordinates": x["coordinates"],
+                "type": "landmark"  # Identify entries as landmarks
+            }
+            
     save_data(pipe_data)
 
 # Function to delete a specific pipe by name
@@ -1229,55 +1251,64 @@ def update_pipe_medium(pipe_data, pipe_name, medium):
 
 def display_interactive_table(pipe_data):
     """Display an interactive table for selecting and viewing pipe data."""
-    # Prepare data for the table
-    table_data = [
-        {
-            "Pipe Name": name,
-            "Coordinates": details["coordinates"],
-            "Length (meters)": details["length"],
-            "Landmarks": list(details["landmarks"].keys()) , # Convert landmarks to string
-        }
-        for name, details in pipe_data.items()
-    ]
+    pipe_table_data = []
+    landmark_table_data = []
 
-    # Convert to a Pandas DataFrame
-    df = pd.DataFrame(table_data)
+    for name, details in pipe_data.items():
+        if "length" in details:  [
+            pipe_table_data.append({
+                "Name": name,
+                "Coordinates": details["coordinates"],
+                "Length (meters)": details["length"],
+                "Start Landmark": details["landmarks"]["start"],
+                "End Landmark": details["landmarks"]["end"]
+            })
+        elif "color" in details:
+            landmark_table_data.append({
+                "Name": name,
+                "Color": details["color"],
+                "Coordinates": details["coordinates"]
+            })
 
-    # Interactive Table: Select Columns
-    st.subheader("Interactive Pipe Data Table")
-    selected_columns = st.multiselect(
-        "Select columns to display:",
-        options=df.columns,
-        default=df.columns.tolist()
-    )
+    # Convert pipe data to a DataFrame
+    pipe_df = pd.DataFrame(pipe_table_data)
+    landmark_df = pd.DataFrame(landmark_table_data)
 
-    # Interactive Table: Select Rows
-    row_labels = df.index.astype(str)  # Use index as labels
-    selected_rows = st.multiselect(
-        "Select rows to display:",
-        options=row_labels,
-        default=row_labels.tolist()
-    )
+    # Display pipe table
+    st.subheader("Pipes Data Table")
+    if not pipe_df.empty:
+        st.write("### Pipe Data")
+        st.dataframe(pipe_df, use_container_width=True)
 
-    # Filter DataFrame based on user selections
-    filtered_df = df.loc[df.index.isin(map(int, selected_rows)), selected_columns]
-
-    # Display the filtered table
-    st.write("### Filtered Pipe Data")
-    st.dataframe(filtered_df, use_container_width=True)
-
-    # Optional: Download filtered data as CSV
-    if not filtered_df.empty:
+        # Optional: Download pipe data as CSV
         csv_data = io.StringIO()
-        filtered_df.to_csv(csv_data, index=False)
+        pipe_df.to_csv(csv_data, index=False)
         st.download_button(
-            label="Download Selected Data as CSV",
+            label="Download Pipe Data as CSV",
             data=csv_data.getvalue(),
-            file_name="filtered_pipe_data.csv",
+            file_name="pipe_data.csv",
             mime="text/csv"
         )
     else:
-        st.info("No data to display. Add or select data to view here.")
+        st.info("No pipe data to display.")
+
+    # Display landmark table
+    st.subheader("Landmarks Data Table")
+    if not landmark_df.empty:
+        st.write("### Landmark Data")
+        st.dataframe(landmark_df, use_container_width=True)
+
+        # Optional: Download landmark data as CSV
+        csv_data = io.StringIO()
+        landmark_df.to_csv(csv_data, index=False)
+        st.download_button(
+            label="Download Landmark Data as CSV",
+            data=csv_data.getvalue(),
+            file_name="landmark_data.csv",
+            mime="text/csv"
+        )
+    else:
+        st.info("No landmark data to display.")
 
 
 # Main function to run the Pipe Storage System app
