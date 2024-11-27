@@ -1339,7 +1339,7 @@ def pipe_main():
     
     if landmarks:
         st.subheader("Landmark Data")
-        for name, details in landmarks:
+        for name, details in landmarks.items():
             st.write(f"**{name}**")
             st.write(f"Color: {details['color']}")
             st.write(f"Coordinates: {details['coordinates']}")
