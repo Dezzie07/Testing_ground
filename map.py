@@ -1206,8 +1206,7 @@ def integrate_api_data(pipe_data, api_pipes, landmarks): #added
         if pipe_name not in pipe_data:  # Avoid duplicate entries
             pipe_data[pipe_name] = {
                 "coordinates": pipe["coordinates"],
-                "length": pipe["distance"],
-                "landmarks": landmarks['name']  # Add landmarks data
+                "length": pipe["distance"], # Add landmarks data
             }
     save_data(pipe_data)
 
