@@ -444,7 +444,7 @@ function sendLandmarkDataToBackend() {{
         color: featureColors[landmark.id] || "black"
     }}));
 
-    fetch("https://fastapi-test-production-1ba4.up.railway.app/send-landmarks/", {{
+    fetch("https://fastapi-test-production-1ba4.up.railway.app/send-pipes/", {{
         method: "POST",
         headers: {{
             "Content-Type": "application/json",
