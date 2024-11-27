@@ -1200,33 +1200,23 @@ def save_data(data):
 
 def integrate_api_data(pipe_data, api_pipes, landmarks):
     """Integrate API data into the storage system, including landmarks."""
-    # Track landmark usage
-    current_landmark_index = 0
     
+    # Add pipes to the pipe_data
     for pipe in api_pipes:
         pipe_name = pipe["name"]
-        if pipe_name not in pipe_data:  # Avoid duplicate entries
-            # Associate start and end landmarks with the pipe
-            if current_landmark_index + 1 >= len(landmarks):
-                raise ValueError("Not enough landmarks to associate with pipes.")
-            
+        if pipe_name not in pipe_data:
             pipe_data[pipe_name] = {
                 "coordinates": pipe["coordinates"],
-                "length": pipe["distance"],
-                "landmarks": {
-                    "start": landmarks[current_landmark_index]["name"],
-                    "end": landmarks[current_landmark_index + 1]["name"],
-                }
+                "length": pipe["distance"]
             }
-            current_landmark_index += 2  # Move to the next pair of landmarks
     
-    # Add standalone landmarks to pipe_data
-    for x in landmarks:
-        landmark_name = x["name"]
+    # Add landmarks to the pipe_data
+    for landmark in landmarks:
+        landmark_name = landmark["name"]
         if landmark_name not in pipe_data:
             pipe_data[landmark_name] = {
-                "color": x["color"],
-                "coordinates": x["coordinates"],
+                "color": landmark["color"],
+                "coordinates": landmark["coordinates"],
                 "type": "landmark"  # Identify entries as landmarks
             }
             
@@ -1250,20 +1240,20 @@ def update_pipe_medium(pipe_data, pipe_name, medium):
     return False
 
 def display_interactive_table(pipe_data):
-    """Display an interactive table for selecting and viewing pipe data."""
+    """Display an interactive table for selecting and viewing pipe and landmark data."""
+    
+    # Separate pipes and landmarks
     pipe_table_data = []
     landmark_table_data = []
 
     for name, details in pipe_data.items():
-        if "length" in details:  [
+        if "length" in details:  # This is a pipe
             pipe_table_data.append({
                 "Name": name,
                 "Coordinates": details["coordinates"],
-                "Length (meters)": details["length"],
-                "Start Landmark": details["landmarks"]["start"],
-                "End Landmark": details["landmarks"]["end"]
-            }) ]
-        elif "color" in details:
+                "Length (meters)": details["length"]
+            })
+        elif "color" in details:  # This is a landmark
             landmark_table_data.append({
                 "Name": name,
                 "Color": details["color"],
@@ -1274,7 +1264,7 @@ def display_interactive_table(pipe_data):
     pipe_df = pd.DataFrame(pipe_table_data)
     landmark_df = pd.DataFrame(landmark_table_data)
 
-    # Display pipe table
+    # Display pipes data
     st.subheader("Pipes Data Table")
     if not pipe_df.empty:
         st.write("### Pipe Data")
@@ -1292,7 +1282,7 @@ def display_interactive_table(pipe_data):
     else:
         st.info("No pipe data to display.")
 
-    # Display landmark table
+    # Display landmarks data
     st.subheader("Landmarks Data Table")
     if not landmark_df.empty:
         st.write("### Landmark Data")
