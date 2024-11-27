@@ -1292,8 +1292,9 @@ def main_storage():
 
     # Fetch and integrate API pipe data
     api_pipes, total_distance = get_distance_values()
+    landmarks = get_landmarks()
     if api_pipes:
-        integrate_api_data(pipe_data, api_pipes)
+        integrate_api_data(pipe_data, api_pipes, landmarks)
         st.success("Fetched and integrated pipe data from API successfully!")
         st.write(f"Total Distance from API: {total_distance} meters")
 
