@@ -1207,7 +1207,7 @@ def integrate_api_data(pipe_data, api_pipes, landmarks): #added
             pipe_data[pipe_name] = {
                 "coordinates": pipe["coordinates"],
                 "length": pipe["distance"],
-                "landmarks": landmarks  # Add landmarks data
+                "landmarks": landmarks['name']  # Add landmarks data
             }
     save_data(pipe_data)
 
