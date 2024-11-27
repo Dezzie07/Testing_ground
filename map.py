@@ -1099,6 +1099,7 @@ def get_user_inputs():
     medium = st.text_input("Enter the medium:")
 
     return pressure, temperature, medium
+
 ################################## API Data's ##################################################
 # Function to check if FastAPI server is running
 def check_server_status():
@@ -1146,7 +1147,7 @@ def get_landmarks():
     Fetch landmarks data from the FastAPI backend and return it as a dictionary.
     """
     try:
-        response = requests.get("https://fastapi-test-production-1ba4.up.railway.app/get-landmarks/")
+        response = requests.get("https://fastapi-test-production-1ba4.up.railway.app/get-distances/")
         if response.status_code == 200:
             data = response.json()
             if data["status"] == "success":
@@ -1314,6 +1315,7 @@ def main_storage():
     # Fetch and integrate API pipe data
     api_pipes, total_distance = get_distance_values()
     landmarks = get_landmarks()
+
     if api_pipes:
         integrate_api_data(pipe_data, api_pipes, landmarks)
         st.success("Fetched and integrated pipe data from API successfully!")
