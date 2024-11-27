@@ -1199,20 +1199,6 @@ def save_data(data):
         json.dump(data, file, indent=4)
 
 
-''''def integrate_api_data(pipe_data, api_pipes):
-    """Integrate API data into the storage system."""
-    landmarks = get_landmarks()  # Fetch landmarks data
-    for pipe in api_pipes:
-        pipe_name = pipe["name"]
-        if pipe_name not in pipe_data:  # Avoid duplicate entries
-            pipe_data[pipe_name] = {
-                "coordinates": pipe["coordinates"],
-                "length": pipe["distance"],
-                "landmarks": landmarks['name'],
-                #"landmark 2": landmarks['name'] # Map landmarks to each pipe by name
-            } ''''
-    #save_data(pipe_data)
-
 def integrate_api_data(pipe_data, api_pipes, landmarks): #added
     """Integrate API data into the storage system, including landmarks."""
     for pipe in api_pipes:
