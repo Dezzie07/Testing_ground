@@ -1262,7 +1262,7 @@ def display_interactive_table(pipe_data):
                 "Length (meters)": details["length"],
                 "Start Landmark": details["landmarks"]["start"],
                 "End Landmark": details["landmarks"]["end"]
-            })
+            }) ]
         elif "color" in details:
             landmark_table_data.append({
                 "Name": name,
