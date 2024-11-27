@@ -1212,13 +1212,14 @@ def integrate_api_data(pipe_data, api_pipes, landmarks):
     
     # Add landmarks to the pipe_data
     for landmark in landmarks:
-        landmark_name = landmark["name"]
-        if landmark_name not in pipe_data:
-            pipe_data[landmark_name] = {
-                "color": landmark["color"],
-                "coordinates": landmark["coordinates"],
-                "type": "landmark"  # Identify entries as landmarks
-            }
+        if isinstance(landmark, dict):
+            landmark_name = landmark["name"]
+            if landmark_name not in pipe_data:
+                pipe_data[landmark_name] = {
+                    "color": landmark["color"],
+                    "coordinates": landmark["coordinates"],
+                    "type": "landmark"  # Identify entries as landmarks
+                }
             
     save_data(pipe_data)
 
