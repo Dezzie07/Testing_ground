@@ -1142,12 +1142,23 @@ def get_distance_values():
         return None, None
         
 def get_landmarks():
+    """
+    Fetch landmarks data from the FastAPI backend and return it as a dictionary.
+    """
     try:
         response = requests.get("https://fastapi-test-production-1ba4.up.railway.app/get-landmarks/")
         if response.status_code == 200:
             data = response.json()
             if data["status"] == "success":
-                return data["landmarks"]
+                # Convert the landmarks list to a dictionary with names as keys
+                landmarks = {
+                    landmark["name"]: {
+                        "color": landmark["color"],
+                        "coordinates": landmark["coordinates"]
+                    }
+                    for landmark in data["landmarks"]
+                }
+                return landmarks
             else:
                 st.error("No landmarks found.")
                 return {}
@@ -1157,8 +1168,7 @@ def get_landmarks():
     except Exception as e:
         st.error(f"Exception occurred while fetching landmarks: {e}")
         return {}
-
-
+        
 def display_landmarks(landmarks):
     """Display landmarks data in Streamlit."""
     if landmarks:
@@ -1198,7 +1208,8 @@ def integrate_api_data(pipe_data, api_pipes):
             pipe_data[pipe_name] = {
                 "coordinates": pipe["coordinates"],
                 "length": pipe["distance"],
-                "landmarks": landmarks.get(pipe_name, [])  # Map landmarks to each pipe by name
+                "landmarks": landmarks['name'],
+                #"landmark 2": landmarks['name'] # Map landmarks to each pipe by name
             }
     save_data(pipe_data)
 
@@ -1227,7 +1238,7 @@ def display_interactive_table(pipe_data):
             "Pipe Name": name,
             "Coordinates": details["coordinates"],
             "Length (meters)": details["length"],
-            "Landmarks": details.get("landmarks", []),  # Use .get() to avoid KeyError
+            "Landmarks": details["landmarks"],  # Use .get() to avoid KeyError
             "Medium": details.get("medium", "Not assigned")
         }
         for name, details in pipe_data.items()
