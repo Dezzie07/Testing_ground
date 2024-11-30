@@ -1328,6 +1328,7 @@ def add_landmarks_to_storage(pipe_data, landmarks):
                     "length": 0,  # Landmarks don't have a length
                     "medium": "N/A",  # Not applicable for landmarks
                 }
+    return pipe_data  # Return the updated data
 
 def associate_pipes_with_landmarks(pipe_data, landmarks):
     """Associate each pipe with its closest landmarks."""
@@ -1402,8 +1403,12 @@ def refresh_data(pipe_data):
     """Clear all data and refresh the storage."""
     if st.button("Refresh Data"):
         pipe_data.clear()
-        save_data(pipe_data)
-        st.warning("All data has been refreshed.")
+        if save_data(pipe_data):  # Save the cleared data
+            st.warning("All data has been refreshed.")
+            return "Data refreshed successfully."  # Success message
+        else:
+            return "Error: Failed to refresh data."  # Error message
+
 
 def select_pipes_for_calculation(pipe_data):
     """Allow users to select saved pipes and output their data for external calculations."""
@@ -1442,6 +1447,7 @@ def add_landmarks_to_pipes(pipe_data, landmarks):
             # Add associated landmarks to pipe details
             details["start_landmark"] = start_landmark
             details["end_landmark"] = end_landmark
+    return pipe_data  # Return the updated data
 
 
 def main_storage():
@@ -1456,13 +1462,14 @@ def main_storage():
     landmarks = fetch_and_integrate_data(pipe_data)
 
     # Add landmarks to storage
-    add_landmarks_to_storage(pipe_data, landmarks)
+    pipe_data = add_landmarks_to_storage(pipe_data, landmarks)
 
     # Associate landmarks with pipes and update pipe data
-    add_landmarks_to_pipes(pipe_data, landmarks)
+    pipe_data = add_landmarks_to_pipes(pipe_data, landmarks)
 
     # Save updated storage
-    save_data(pipe_data)
+    if not save_data(pipe_data):
+        st.error("Failed to save updated storage.")
 
     # Display stored pipes and landmarks
     st.header("Stored Pipes and Landmarks")
@@ -1478,12 +1485,13 @@ def main_storage():
     selected_pipes = select_pipes_for_calculation(pipe_data)
 
     # Refresh data
-    refresh_data(pipe_data)
+    refresh_status = refresh_data(pipe_data)
+    if refresh_status:
+        st.info(refresh_status)
 
     # (Optional) Output selected pipes for further use
     if selected_pipes:
         st.success("Selected pipes ready for cost calculations.")
-
 
 
 
