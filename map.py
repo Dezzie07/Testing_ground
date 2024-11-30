@@ -1554,7 +1554,13 @@ def pipe_main(selected_pipes):
 
 
 
-# Run the main function
-main_storage()
-pipe_main()
+def main():
+    # Run the storage system
+    selected_pipes = main_storage()
+    
+    # Proceed to pipe selection and calculations
+    pipe_main(selected_pipes)
+
+if __name__ == "__main__":
+    main()
 
