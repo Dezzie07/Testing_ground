@@ -1384,19 +1384,27 @@ def add_download_button(df):
 
 
 def handle_delete_entry(pipe_data):
-    """Allow the user to delete an entry by name."""
+    """Allow the user to delete an entry by selecting from a dropdown menu."""
     st.header("Delete an Entry")
-    with st.form("delete_entry_form"):
-        name_to_delete = st.text_input("Name to Delete", placeholder="Enter name")
-        delete_submitted = st.form_submit_button("Delete")
-        if delete_submitted:
-            if name_to_delete:
-                if delete_pipe(pipe_data, name_to_delete):
-                    st.success(f"Entry '{name_to_delete}' deleted successfully!")
-                else:
-                    st.error(f"Entry '{name_to_delete}' not found.")
+
+    # Get all stored pipe and landmark names
+    entry_names = list(pipe_data.keys())
+
+    # Dropdown for selecting an entry
+    selected_entry = st.selectbox(
+        "Select an Entry to Delete",
+        options=["Select an entry"] + entry_names,  # Add a placeholder option
+        help="Choose an entry (pipe or landmark) to delete from storage."
+    )
+
+    if selected_entry != "Select an entry":  # Ensure a valid selection
+        # Add confirmation button
+        if st.button(f"Confirm Deletion of '{selected_entry}'"):
+            if delete_pipe(pipe_data, selected_entry):
+                st.success(f"Entry '{selected_entry}' deleted successfully!")
             else:
-                st.error("Name is required to delete an entry.")
+                st.error(f"Failed to delete entry '{selected_entry}'.")
+
 
 
 def refresh_data(pipe_data):
