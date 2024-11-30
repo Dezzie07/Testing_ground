@@ -1120,51 +1120,81 @@ def check_server_status():
         return False
 
 
-def get_distance_values():
-    """Fetch pipe data from the API."""
-    try:
-        response = requests.get("https://fastapi-test-production-1ba4.up.railway.app/get-distances/")
-        if response.status_code == 200:
-            data = response.json()
-            individual_pipes = [
-                {
-                    "name": pipe["name"],
-                    "distance": pipe["distance"],
-                    "coordinates": pipe["coordinates"]
-                }
-                for pipe in data.get("individual_pipes", [])
-            ]
-            total_distance = data.get("total_distance", 0)
+# Define API endpoints as constants for easy reusability
+API_BASE_URL = "https://fastapi-test-production-1ba4.up.railway.app"
+DISTANCES_ENDPOINT = f"{API_BASE_URL}/get-distances/"
+LANDMARKS_ENDPOINT = f"{API_BASE_URL}/get-landmarks/"
 
-            if individual_pipes and total_distance > 0:
-                return individual_pipes, total_distance
-            else:
-                return None, None
-        else:
-            st.error("Failed to fetch pipe data from the backend.")
-            return None, None
-    except Exception as e:
-        st.error(f"Error fetching pipes data from backend: {e}")
-        return None, None
+def get_distance_values():
+    """Fetch pipe data from the API and process it."""
+    try:
+        # Send GET request to the distances endpoint
+        response = requests.get(DISTANCES_ENDPOINT)
         
+        # Check if the response is successful
+        if response.status_code != 200:
+            st.error(f"API request failed with status code {response.status_code}: {response.text}")
+            return None, None
+
+        # Parse JSON data
+        data = response.json()
+
+        # Extract individual pipes and total distance
+        individual_pipes = data.get("individual_pipes", [])
+        total_distance = data.get("total_distance", 0)
+
+        # Validate and return processed data
+        if individual_pipes and total_distance > 0:
+            return [
+                {
+                    "name": pipe.get("name", "Unnamed Pipe"),
+                    "distance": pipe.get("distance", 0),
+                    "coordinates": pipe.get("coordinates", [])
+                }
+                for pipe in individual_pipes
+            ], total_distance
+        else:
+            st.warning("No valid pipe data available from the API.")
+            return None, None
+    except requests.exceptions.RequestException as req_error:
+        st.error(f"Network error occurred while fetching distances: {req_error}")
+        return None, None
+    except ValueError as json_error:
+        st.error(f"Error decoding JSON response: {json_error}")
+        return None, None
+    except Exception as e:
+        st.error(f"An unexpected error occurred: {e}")
+        return None, None
+
 def get_landmarks():
     """Fetch landmarks data from the FastAPI backend."""
     try:
-        response = requests.get("https://fastapi-test-production-1ba4.up.railway.app/get-landmarks/")
-        if response.status_code == 200:
-            data = response.json()
-            if data["status"] == "success":
-                return data["landmarks"]
-            else:
-                st.error("No landmarks found.")
-                return []
-        else:
-            st.error(f"Error fetching landmarks: {response.status_code}")
+        # Send GET request to the landmarks endpoint
+        response = requests.get(LANDMARKS_ENDPOINT)
+        
+        # Check if the response is successful
+        if response.status_code != 200:
+            st.error(f"API request failed with status code {response.status_code}: {response.text}")
             return []
-    except Exception as e:
-        st.error(f"Exception occurred while fetching landmarks: {e}")
-        return []
 
+        # Parse JSON data
+        data = response.json()
+
+        # Validate and return landmarks data
+        if data.get("status") == "success":
+            return data.get("landmarks", [])
+        else:
+            st.warning("No landmarks data found.")
+            return []
+    except requests.exceptions.RequestException as req_error:
+        st.error(f"Network error occurred while fetching landmarks: {req_error}")
+        return []
+    except ValueError as json_error:
+        st.error(f"Error decoding JSON response: {json_error}")
+        return []
+    except Exception as e:
+        st.error(f"An unexpected error occurred: {e}")
+        return []
        
 
 
