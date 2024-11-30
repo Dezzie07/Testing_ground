@@ -1329,9 +1329,9 @@ def add_landmarks_to_storage(pipe_data, landmarks):
                     "medium": "N/A",  # Not applicable for landmarks
                 }
 
-def display_data_table(pipe_data, landmarks):
-    """Display stored pipes and landmarks in a table."""
-    table_data = []
+def associate_pipes_with_landmarks(pipe_data, landmarks):
+    """Associate each pipe with its closest landmarks."""
+    associated_data = []
     for name, details in pipe_data.items():
         if "length" in details and details["length"] > 0:
             # Pipes: Associate with landmarks
@@ -1343,7 +1343,7 @@ def display_data_table(pipe_data, landmarks):
         else:
             # Landmarks or others
             formatted_name = name
-        table_data.append(
+        associated_data.append(
             {
                 "Name": formatted_name,
                 "Coordinates": str(details["coordinates"]) if details["coordinates"] else "N/A",
@@ -1351,11 +1351,24 @@ def display_data_table(pipe_data, landmarks):
                 "Medium": details.get("medium", "Not assigned"),
             }
         )
-    # Create and display the DataFrame
-    df = pd.DataFrame(table_data)
-    st.subheader("Pipe and Landmark Data (Table View)")
+    return associated_data
+
+def display_table(data, title="Pipe and Landmark Data (Table View)"):
+    """Display a given data table in Streamlit."""
+    # Create a DataFrame
+    df = pd.DataFrame(data)
+    # Display the table
+    st.subheader(title)
     st.table(df)
     return df
+
+def display_data_table(pipe_data, landmarks): # LAndmarks and coords only
+    """Display stored pipes and landmarks in a table."""
+    # Step 1: Associate pipes with landmarks
+    table_data = associate_pipes_with_landmarks(pipe_data, landmarks)
+    # Step 2: Display the table
+    return display_table(table_data)
+
 
 def add_download_button(df):
     """Add a download button for the table data."""
@@ -1383,6 +1396,7 @@ def handle_delete_entry(pipe_data):
                     st.error(f"Entry '{name_to_delete}' not found.")
             else:
                 st.error("Name is required to delete an entry.")
+
 
 def refresh_data(pipe_data):
     """Clear all data and refresh the storage."""
