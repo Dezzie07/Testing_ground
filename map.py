@@ -1541,15 +1541,6 @@ def pipe_main(selected_pipes):
             Pipe_finder(pipe_material, pressure, pipe_details['length'])
             st.markdown("---")
 
-        # Display a summary for all selected pipes
-        st.markdown("### Total Information for All Selected Pipes")
-        pipe_material = choose_pipe_material(pressure, temperature, medium)
-        st.markdown(f"**Selected Pipe Material:** {pipe_material}")
-
-        # Calculate the stress for the total selected material
-        stress_calculator(pipe_material, temperature)
-        st.markdown("#### Total Pipe Summary:")
-        Pipe_finder(pipe_material, pressure, sum(pipe['length'] for pipe in selected_pipes.values()))
 
 
 
