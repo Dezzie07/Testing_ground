@@ -1473,8 +1473,16 @@ def main_storage():
     else:
         st.info("No data stored yet. Add pipes or landmarks to get started.")
 
+    # Add pipe selection functionality
+    st.header("Select Pipes for Cost Calculation")
+    selected_pipes = select_pipes_for_calculation(pipe_data)
+
     # Refresh data
     refresh_data(pipe_data)
+
+    # (Optional) Output selected pipes for further use
+    if selected_pipes:
+        st.success("Selected pipes ready for cost calculations.")
 
 
 
