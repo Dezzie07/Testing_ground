@@ -1500,20 +1500,16 @@ def main_storage():
     # (Optional) Output selected pipes for further use
     if selected_pipes:
         st.success("Selected pipes ready for cost calculations.")
+    
+    return selected_pipes
 
 
 
-def pipe_main():
+def pipe_main(selected_pipes):
     st.title("Pipe Selection Tool")
 
     # User inputs for pressure, temperature, and medium
     pressure, temperature, medium = get_user_inputs1()
-
-    # Load saved pipe data from storage
-    pipe_data = load_data()
-
-    # Retrieve selected pipes
-    selected_pipes = select_pipes_for_calculation(pipe_data)
 
     if not selected_pipes:
         st.warning("No pipes selected. Please select pipes to proceed.")
@@ -1554,6 +1550,7 @@ def pipe_main():
         stress_calculator(pipe_material, temperature)
         st.markdown("#### Total Pipe Summary:")
         Pipe_finder(pipe_material, pressure, sum(pipe['length'] for pipe in selected_pipes.values()))
+
 
 
 
