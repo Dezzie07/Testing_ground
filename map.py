@@ -1405,6 +1405,29 @@ def refresh_data(pipe_data):
         save_data(pipe_data)
         st.warning("All data has been refreshed.")
 
+def select_pipes_for_calculation(pipe_data):
+    """Allow users to select saved pipes and output their data for external calculations."""
+    # Get a list of all saved pipe names
+    pipe_names = [name for name, details in pipe_data.items() if details.get("length", 0) > 0]
+
+    # Create a dropdown menu for selecting pipes
+    selected_pipes = st.multiselect(
+        label="Select Pipes for Cost Calculation",
+        options=pipe_names,
+        help="Choose the pipes you want to use for piping cost calculations."
+    )
+
+    # Fetch and display data for selected pipes
+    if selected_pipes:
+        selected_data = {name: pipe_data[name] for name in selected_pipes}
+        st.write("Selected Pipes Data:")
+        st.json(selected_data)  # Display as JSON for easy readability
+        
+        # Prepare data for external use
+        return selected_data
+    else:
+        st.info("No pipes selected.")
+        return {}
 
 
 
@@ -1436,6 +1459,14 @@ def main_storage():
 
     # Refresh data
     refresh_data(pipe_data)
+
+    # Add dropdown menu for selecting pipes
+    selected_pipes = select_pipes_for_calculation(pipe_data)
+
+    # Selected pipes can now be used in external code
+    if selected_pipes:
+        st.write("You can now use the selected pipes for further calculations.")
+
 
 
 
