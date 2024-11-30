@@ -1558,5 +1558,6 @@ def pipe_main():
 
 
 # Run the main function
-pipe_main()
 main_storage()
+pipe_main()
+
