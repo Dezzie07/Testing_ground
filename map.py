@@ -1503,69 +1503,58 @@ def main_storage():
 
 
 
-# Function to assign mediums in pipe_main()
 def pipe_main():
     st.title("Pipe Selection Tool")
+
     # User inputs for pressure, temperature, and medium
     pressure, temperature, medium = get_user_inputs1()
 
+    # Load saved pipe data from storage
+    pipe_data = load_data()
+
+    # Retrieve selected pipes
+    selected_pipes = select_pipes_for_calculation(pipe_data)
+
+    if not selected_pipes:
+        st.warning("No pipes selected. Please select pipes to proceed.")
+        return
+
     # Handle the "Get Piping Info" button
     if st.button("Get Piping Info"):
-        # Fetch pipe values
-        individual_pipes, total_distance = get_distance_values()
-
-        if individual_pipes is None or len(individual_pipes) == 0:
-            st.warning("No pipe data available yet. Please draw lines on the map to proceed.")
-        else:
-            selected_pipes = individual_pipes  # Automatically select all individual pipes
-
-            # Load existing data
-            pipe_data = load_data()
-
-            # Calculate and display individual pipe information
-            st.markdown("### Selected Pipes Summary")
-            for pipe in selected_pipes:
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.markdown(f"**Pipe Name:** {pipe['name']}")
-                with col2:
-                    st.markdown(f"**Distance:** {pipe['distance']} meters")
-
-                # Display the coordinates of the drawn lines
-                st.markdown(f"**Coordinates:** {pipe['coordinates']}")  # Display the coordinates
-
-                # Choose the pipe material based on inputs
-                pipe_material = choose_pipe_material(pressure, temperature, medium)
-                st.markdown(f"**Selected Pipe Material:** {pipe_material}")
-
-                # Update the medium in storage
-                update_pipe_medium(pipe_data, pipe['name'], medium)
-
-                # Calculate the stress for the given material
-                stress_calculator(pipe_material, temperature)
-
-                # Calculate price for the current pipe
-                st.markdown("#### Individual Pipe Summary:")
-                Pipe_finder(pipe_material, pressure, pipe['distance'])
-                st.markdown("---")
-
-            # Save updated pipe data
-            save_data(pipe_data)
-
-            # Calculate and display total information for all selected pipes
-            st.markdown("### Total Information for All Selected Pipes")
-            total_selected_distance = sum(pipe['distance'] for pipe in selected_pipes)
+        # Calculate and display individual pipe information
+        st.markdown("### Selected Pipes Summary")
+        for pipe_name, pipe_details in selected_pipes.items():
             col1, col2 = st.columns(2)
             with col1:
-                st.markdown(f"**Total Selected Distance:** {total_selected_distance} meters")
+                st.markdown(f"**Pipe Name:** {pipe_name}")
             with col2:
-                pipe_material = choose_pipe_material(pressure, temperature, medium)
-                st.markdown(f"**Selected Pipe Material:** {pipe_material}")
+                st.markdown(f"**Distance:** {pipe_details['length']} meters")
 
-            # Calculate the stress for the total selected material
+            # Display the coordinates of the drawn lines
+            st.markdown(f"**Coordinates:** {pipe_details['coordinates']}")
+
+            # Choose the pipe material
+            pipe_material = choose_pipe_material(pressure, temperature, medium)
+            st.markdown(f"**Selected Pipe Material:** {pipe_material}")
+
+            # Calculate the stress for the given material
             stress_calculator(pipe_material, temperature)
-            st.markdown("#### Total Pipe Summary:")
-            Pipe_finder(pipe_material, pressure, total_selected_distance)
+
+            # Calculate the price for the current pipe
+            st.markdown("#### Individual Pipe Summary:")
+            Pipe_finder(pipe_material, pressure, pipe_details['length'])
+            st.markdown("---")
+
+        # Display a summary for all selected pipes
+        st.markdown("### Total Information for All Selected Pipes")
+        pipe_material = choose_pipe_material(pressure, temperature, medium)
+        st.markdown(f"**Selected Pipe Material:** {pipe_material}")
+
+        # Calculate the stress for the total selected material
+        stress_calculator(pipe_material, temperature)
+        st.markdown("#### Total Pipe Summary:")
+        Pipe_finder(pipe_material, pressure, sum(pipe['length'] for pipe in selected_pipes.values()))
+
 
 
 # Run the main function
