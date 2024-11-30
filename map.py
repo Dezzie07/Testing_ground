@@ -1428,7 +1428,20 @@ def select_pipes_for_calculation(pipe_data):
     else:
         st.info("No pipes selected.")
         return {}
-
+        
+def add_landmarks_to_pipes(pipe_data, landmarks):
+    """Update each pipe in pipe_data with its associated landmarks."""
+    for name, details in pipe_data.items():
+        if "length" in details and details["length"] > 0:
+            # Pipes: Associate landmarks with start and end coordinates
+            start_coord = details["coordinates"][0]
+            end_coord = details["coordinates"][-1]
+            start_landmark = find_closest_landmark(start_coord, landmarks)
+            end_landmark = find_closest_landmark(end_coord, landmarks)
+            
+            # Add associated landmarks to pipe details
+            details["start_landmark"] = start_landmark
+            details["end_landmark"] = end_landmark
 
 
 def main_storage():
@@ -1445,6 +1458,9 @@ def main_storage():
     # Add landmarks to storage
     add_landmarks_to_storage(pipe_data, landmarks)
 
+    # Associate landmarks with pipes and update pipe data
+    add_landmarks_to_pipes(pipe_data, landmarks)
+
     # Save updated storage
     save_data(pipe_data)
 
@@ -1459,16 +1475,6 @@ def main_storage():
 
     # Refresh data
     refresh_data(pipe_data)
-
-    # Add dropdown menu for selecting pipes
-    selected_pipes = select_pipes_for_calculation(pipe_data)
-
-    # Selected pipes can now be used in external code
-    if selected_pipes:
-        st.write("You can now use the selected pipes for further calculations.")
-
-
-
 
 
 
