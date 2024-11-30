@@ -14,6 +14,9 @@ from pydantic import BaseModel
 import threading
 import uvicorn
 
+# Set page layout to wide
+st.set_page_config(layout='wide')
+
 # Set up a title for the app
 st.title("Piping tool")
 
@@ -1206,28 +1209,43 @@ DATA_FILE = "pipe_data.json"
 def load_data():
     """Load pipe data from the JSON file."""
     if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "r") as file:
-            return json.load(file)
+        try:
+            with open(DATA_FILE, "r") as file:
+                return json.load(file)
+        except json.JSONDecodeError:
+            st.error("Error decoding JSON file. Starting with empty data.")
+            return {}
     return {}
-# Function to save data
+
 def save_data(data):
-    """Save pipe data to the JSON file."""
-    with open(DATA_FILE, "w") as file:
-        json.dump(data, file, indent=4)
+    """Save pipe data to the JSON file safely."""
+    temp_file = DATA_FILE + ".tmp"  # Temporary file
+    try:
+        with open(temp_file, "w") as file:
+            json.dump(data, file, indent=4)
+        os.replace(temp_file, DATA_FILE)  # Replace original file atomically
+    except Exception as e:
+        st.error(f"Failed to save data: {e}")
 
+def validate_api_pipe(pipe):
+    """Ensure a single pipe has all required fields."""
+    required_keys = ["name", "coordinates", "distance"]
+    return all(key in pipe for key in required_keys)
 
-# Function to integrate API data into storage
 def integrate_api_data(pipe_data, api_pipes):
     """Integrate API data into the storage system."""
     for pipe in api_pipes:
+        if not validate_api_pipe(pipe):
+            st.warning(f"Skipping invalid pipe data: {pipe}")
+            continue  # Skip invalid entries
+
         pipe_name = pipe["name"]
         if pipe_name not in pipe_data:  # Avoid duplicate entries
             pipe_data[pipe_name] = {
                 "coordinates": pipe["coordinates"],
                 "length": pipe["distance"]
             }
-    save_data(pipe_data)
-
+    save_data(pipe_data)  # Save updated data
 
 
 # Function to delete a specific pipe by name
