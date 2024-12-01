@@ -1185,6 +1185,7 @@ def get_landmarks():
 
 # File to store data persistently
 DATA_FILE = "pipe_data.json"
+PROCESSED_DATA_FILE = "processed_pipe_data.json"
 
 def load_data():
     """Load pipe data from the JSON file."""
@@ -1485,41 +1486,67 @@ def main_storage():
 
 ############## Pipe_main ###############
 
-def save_processed_data(data, filename="processed_pipe_data.json"):
+def save_processed_data(data):
     """Save processed pipe data to a JSON file."""
     try:
-        with open(filename, "w") as f:
+        with open(PROCESSED_DATA_FILE, "w") as f:
             json.dump(data, f, indent=4)
-        st.success(f"Processed data saved successfully to {filename}!")
+        st.success(f"Processed data saved successfully to {PROCESSED_DATA_FILE}!")
     except Exception as e:
         st.error(f"Failed to save processed data: {e}")
 
-def handle_delete_processed_data(filename="processed_pipe_data.json"):
+
+def handle_delete_processed_data():
     """Allow the user to delete an entry from the processed JSON file."""
     st.header("Delete Processed Pipe Entry")
 
     # Load existing data
     try:
-        with open(filename, "r") as f:
-            data = json.load(f)
+        with open(PROCESSED_DATA_FILE, "r") as f:
+            processed_data = json.load(f)
     except FileNotFoundError:
-        st.info("No processed data file found.")
+        st.info(f"No processed data file ({PROCESSED_DATA_FILE}) found.")
         return
 
-    # Use existing handle_delete_entry logic
-    handle_delete_entry(data)
+    # Get a list of all pipe names from processed data
+    processed_pipe_names = list(processed_data.keys())
 
-    # Save updated data
-    with open(filename, "w") as f:
-        json.dump(data, f, indent=4)
+    # Dropdown for selecting an entry to delete
+    selected_entry = st.selectbox(
+        "Select a Pipe Entry to Delete",
+        options=["Select an entry"] + processed_pipe_names,  # Add a placeholder option
+        help="Choose a processed pipe entry to delete."
+    )
 
-def display_processed_data_table(filename="processed_pipe_data.json"):
-    """Display the contents of the second JSON file as a table."""
+    # Handle deletion after a valid selection
+    if selected_entry != "Select an entry":
+        # Add confirmation button for deletion
+        if st.button(f"Confirm Deletion of '{selected_entry}'"):
+            # Check if selected entry exists in the data
+            if selected_entry in processed_data:
+                try:
+                    # Delete the selected entry
+                    del processed_data[selected_entry]
+                    
+                    # Save the updated data to the processed JSON file
+                    with open(PROCESSED_DATA_FILE, "w") as f:
+                        json.dump(processed_data, f, indent=4)
+                    
+                    # Show success message
+                    st.success(f"Processed entry '{selected_entry}' deleted successfully!")
+                except Exception as e:
+                    st.error(f"Failed to delete entry '{selected_entry}': {e}")
+            else:
+                st.warning(f"Entry '{selected_entry}' does not exist.")
+
+
+def display_processed_data_table():
+    """Display the contents of the processed JSON file as a table."""
     st.header("Processed Pipe Data Table")
 
     try:
         # Load the JSON file
-        with open(filename, "r") as file:
+        with open(PROCESSED_DATA_FILE, "r") as file:
             processed_data = json.load(file)
         
         # Flatten the JSON for table display
@@ -1536,7 +1563,7 @@ def display_processed_data_table(filename="processed_pipe_data.json"):
         st.table(df)
 
     except FileNotFoundError:
-        st.warning("No processed data file found.")
+        st.warning(f"No processed data file ({PROCESSED_DATA_FILE}) found.")
     except json.JSONDecodeError as e:
         st.error(f"Error decoding JSON: {e}")
 
