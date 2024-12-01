@@ -1485,6 +1485,19 @@ def main_storage():
     return selected_pipes
 
 ############## Pipe_main ###############
+
+def initialize_processed_data_file():
+    """Ensure the processed data file exists, creating it if necessary."""
+    if not os.path.exists(PROCESSED_DATA_FILE):
+        try:
+            with open(PROCESSED_DATA_FILE, "w") as file:
+                json.dump({}, file)  # Create an empty JSON object
+            st.info(f"Processed data file ({PROCESSED_DATA_FILE}) created.")
+        except Exception as e:
+            st.error(f"Failed to create processed data file: {e}")
+
+
+
 def load_processed_data():
     """Load processed pipe data from the JSON file."""
     if os.path.exists(PROCESSED_DATA_FILE):
@@ -1682,6 +1695,9 @@ def reset_view_state():
 def main():
     """Main function to handle storage and processed data display."""
     st.title("Piping Tool")
+
+    # Ensure the processed data file is initialized
+    initialize_processed_data_file()
 
     # Display the Processed Pipe Data Table at the beginning
     display_processed_data_table()
