@@ -1607,6 +1607,9 @@ def pipe_main(selected_pipes):
 
             # Call Pipe_finder to get relevant data
             pipe_data = Pipe_finder(pipe_material, pressure, pipe_details['length'])
+            if not pipe_data:
+                st.warning(f"No data found for {pipe_name}. Skipping...")
+                continue
 
             # Consolidate all data
             processed_pipes[pipe_name] = {
@@ -1624,34 +1627,36 @@ def pipe_main(selected_pipes):
             }
 
         # Display summary of all processed pipes as a table
-        st.markdown("### Processed Pipe Data Summary")
-        table_data = [
-            {
-                'Pipe Name': name,
-                'Length (m)': details['Length'],
-                'Material': details['Material'],
-                'Start Landmark': details['Start Landmark'],
-                'Start Coordinates': details['Start Coordinates'],
-                'End Landmark': details['End Landmark'],
-                'End Coordinates': details['End Coordinates'],
-                'Medium': details['Medium'],
-                'Total Cost (Euro)': sum(
-                    option['Total Cost (Euro)'] for option in details['Pipe Data'].get(details['Material'], [])
-                )
-            }
-            for name, details in processed_pipes.items()
-        ]
-        df = pd.DataFrame(table_data)
-        st.table(df)  # Display table
+        if processed_pipes:
+            st.markdown("### Processed Pipe Data Summary")
+            table_data = [
+                {
+                    'Pipe Name': name,
+                    'Length (m)': details['Length'],
+                    'Material': details['Material'],
+                    'Start Landmark': details['Start Landmark'],
+                    'Start Coordinates': details['Start Coordinates'],
+                    'End Landmark': details['End Landmark'],
+                    'End Coordinates': details['End Coordinates'],
+                    'Medium': details['Medium'],
+                    'Total Cost (Euro)': sum(
+                        option.get('Total Cost (Euro)', 0) for option in details['Pipe Data'].get(details['Material'], [])
+                    )
+                }
+                for name, details in processed_pipes.items()
+            ]
+            df = pd.DataFrame(table_data)
+            st.table(df)  # Display table
 
-        # Save processed data to a second JSON file
-        save_processed_data(processed_pipes)
+            # Save processed data to a second JSON file
+            save_processed_data(processed_pipes)
+        else:
+            st.warning("No processed pipe data to display.")
 
+        # Provide a button to view processed data table
         if st.button("View Processed Pipe Data (Table)"):
             display_processed_data_table()
 
-        # Handle deletion of entries from the second JSON file
-        handle_delete_processed_data()
         
 
 
