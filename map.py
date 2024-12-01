@@ -1546,36 +1546,60 @@ def handle_delete_processed_data():
 
 
 def display_processed_data_table():
-    """Display the contents of the processed JSON file as a table."""
+    """Display the contents of the processed JSON file as a table with expanders for detailed data."""
     st.header("Processed Pipe Data Table")
 
-    # Load data from session state or file
-    if 'processed_data' not in st.session_state:
-        try:
-            with open(PROCESSED_DATA_FILE, "r") as file:
-                st.session_state['processed_data'] = json.load(file)
-        except FileNotFoundError:
-            st.warning(f"No processed data file ({PROCESSED_DATA_FILE}) found.")
-            return
-        except json.JSONDecodeError as e:
-            st.error(f"Error decoding JSON: {e}")
-            return
+    # Load processed data
+    try:
+        with open(PROCESSED_DATA_FILE, "r") as file:
+            processed_data = json.load(file)
+    except FileNotFoundError:
+        st.warning(f"No processed data file ({PROCESSED_DATA_FILE}) found.")
+        return
+    except json.JSONDecodeError as e:
+        st.error(f"Error decoding JSON: {e}")
+        return
 
-    # Use data from session state
-    processed_data = st.session_state['processed_data']
-
-    # Flatten the JSON for table display
+    # Prepare table data without "Pipe Data" for main display
     table_data = [
         {
             "Pipe Name": pipe_name,
-            **details  # Unpack the details for each pipe
+            "Length (m)": details.get("Length", 0),
+            "Material": details.get("Material", "N/A"),
+            "Start Landmark": details.get("Start Landmark", "Unknown"),
+            "End Landmark": details.get("End Landmark", "Unknown"),
+            "Medium": details.get("Medium", "Unknown"),
+            "Total Cost (Euro)": sum(
+                option.get("Total Cost (Euro)", 0)
+                for option in details.get("Pipe Data", {}).get(details.get("Material", ""), [])
+            ),
+            "Pipe Data": details.get("Pipe Data", {})  # Include for expanders, not for main table
         }
         for pipe_name, details in processed_data.items()
     ]
 
-    # Convert to DataFrame and display as table
-    df = pd.DataFrame(table_data)
-    st.table(df)
+    # Iterate through rows and display with expanders for detailed data
+    for row in table_data:
+        # Display main information for each pipe
+        st.markdown(f"### {row['Pipe Name']}")
+        st.write(f"**Length (m):** {row['Length (m)']}")
+        st.write(f"**Material:** {row['Material']}")
+        st.write(f"**Start Landmark:** {row['Start Landmark']}")
+        st.write(f"**End Landmark:** {row['End Landmark']}")
+        st.write(f"**Medium:** {row['Medium']}")
+        st.write(f"**Total Cost (Euro):** {row['Total Cost (Euro)']}")
+
+        # Expander for detailed Pipe Data
+        with st.expander("View Pipe Data Details"):
+            detailed_data = row["Pipe Data"]
+            for material, options in detailed_data.items():
+                st.markdown(f"#### Material: {material}")
+                if options:  # Check if there is data to display
+                    df = pd.DataFrame(options)  # Convert detailed options to DataFrame
+                    st.table(df)  # Display as a table
+                else:
+                    st.write("No data available for this material.")
+
 
 
 
