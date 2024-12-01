@@ -1563,11 +1563,31 @@ def pipe_main(selected_pipes):
                 'Pipe Data': pipe_data  # Contains all the filtered options
             }
 
+        # Display summary of all processed pipes as a table
+        st.markdown("### Processed Pipe Data Summary")
+        table_data = [
+            {
+                'Pipe Name': name,
+                'Length (m)': details['Length'],
+                'Material': details['Material'],
+                'Start Landmark': details['Start Landmark'],
+                'End Landmark': details['End Landmark'],
+                'Medium': details['Medium'],
+                'Total Cost (Euro)': sum(
+                    option['Total Cost (Euro)'] for option in details['Pipe Data'].get(details['Material'], [])
+                )
+            }
+            for name, details in processed_pipes.items()
+        ]
+        df = pd.DataFrame(table_data)
+        st.table(df)  # Display table
+
         # Save processed data to a second JSON file
         save_processed_data(processed_pipes)
 
         # Handle deletion of entries from the second JSON file
         handle_delete_processed_data()
+
 
 
 
