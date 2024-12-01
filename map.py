@@ -1625,7 +1625,7 @@ def pipe_main(selected_pipes):
     # Add a button to view processed data
     if st.button("View Processed Pipe Data (Table)"):
         st.session_state['show_processed_data'] = True  # Set state for displaying data
-        st.experimental_rerun()  # Trigger rerun to show the table
+        st.rerun()  # Trigger rerun to show the table
 
 
         
@@ -1643,10 +1643,7 @@ def main():
     # Reset to processing view if button is clicked
     if st.button("Reset to Processing View"):
         reset_view_state()
-        st.experimental_rerun()
+        st.rerun()  # Use st.rerun() here
 
     # Proceed to pipe selection and calculations
     pipe_main(selected_pipes)
-
-
-main()
