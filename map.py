@@ -1486,18 +1486,29 @@ def main_storage():
 
 ############## Pipe_main ###############
 
-def save_processed_data(data):
-    """Save processed pipe data to a JSON file and session state."""
+def save_processed_data(new_data):
+    """
+    Save processed pipe data to the JSON file, appending new data to existing entries.
+    """
     try:
-        # Save to the JSON file
+        # Load existing data if the file exists
+        if os.path.exists(PROCESSED_DATA_FILE):
+            with open(PROCESSED_DATA_FILE, "r") as f:
+                processed_data = json.load(f)
+        else:
+            processed_data = {}  # Initialize an empty dictionary if the file doesn't exist
+
+        # Append new data to the existing data
+        processed_data.update(new_data)
+
+        # Save the updated data back to the JSON file
         with open(PROCESSED_DATA_FILE, "w") as f:
-            json.dump(data, f, indent=4)
-        
-        # Save to session state
-        st.session_state['processed_data'] = data
+            json.dump(processed_data, f, indent=4)
+
         st.success(f"Processed data saved successfully to {PROCESSED_DATA_FILE}!")
     except Exception as e:
         st.error(f"Failed to save processed data: {e}")
+
 
 
 
@@ -1606,11 +1617,6 @@ def display_processed_data_table():
 def pipe_main(selected_pipes):
     st.title("Pipe Selection Tool")
 
-    # Handle state for displaying processed data
-    if 'show_processed_data' in st.session_state and st.session_state['show_processed_data']:
-        display_processed_data_table()
-        return  # Skip processing if viewing data
-
     # User inputs for pressure, temperature, and medium
     pressure, temperature, medium = get_user_inputs1()
 
@@ -1618,38 +1624,53 @@ def pipe_main(selected_pipes):
         st.warning("No pipes selected. Please select pipes to proceed.")
         return
 
-    # Dictionary to store processed data for all pipes
-    processed_pipes = {}
+    # Load existing processed data (if any)
+    try:
+        with open(PROCESSED_DATA_FILE, "r") as f:
+            processed_pipes = json.load(f)
+    except FileNotFoundError:
+        processed_pipes = {}  # Initialize empty dictionary if file doesn't exist
 
     # Handle the "Get Piping Info" button
     if st.button("Get Piping Info"):
         for pipe_name, pipe_details in selected_pipes.items():
+            if pipe_name in processed_pipes:
+                st.warning(f"Pipe '{pipe_name}' is already saved. Skipping...")
+                continue  # Skip duplicate entries
+
+            # Process new pipe data
             st.markdown(f"### Processing {pipe_name}")
-            
-            # Process the pipe (your existing logic)
+            st.markdown(f"**Length:** {pipe_details['length']} meters")
+            st.markdown(f"**Coordinates:** {pipe_details['coordinates']}")
+
+            start_landmark = pipe_details.get('start_landmark', 'Unknown')
+            end_landmark = pipe_details.get('end_landmark', 'Unknown')
+            st.markdown(f"**Start Landmark:** {start_landmark}")
+            st.markdown(f"**End Landmark:** {end_landmark}")
+
+            # Determine pipe material and fetch data
+            pipe_material = choose_pipe_material(pressure, temperature, medium)
+            pipe_data = Pipe_finder(pipe_material, pressure, pipe_details['length'])
+
+            # Save processed data for the pipe
             processed_pipes[pipe_name] = {
                 'Length': pipe_details['length'],
                 'Coordinates': pipe_details['coordinates'],
-                'Start Landmark': pipe_details.get('start_landmark', 'Unknown'),
-                'End Landmark': pipe_details.get('end_landmark', 'Unknown'),
+                'Start Landmark': start_landmark,
+                'End Landmark': end_landmark,
                 'Pressure': pressure,
                 'Temperature': temperature,
                 'Medium': medium,
-                'Material': choose_pipe_material(pressure, temperature, medium),
-                'Pipe Data': Pipe_finder(
-                    choose_pipe_material(pressure, temperature, medium), 
-                    pressure, 
-                    pipe_details['length']
-                )
+                'Material': pipe_material,
+                'Pipe Data': pipe_data
             }
 
-        # Save processed data to file and session state
+        # Save all processed data to the JSON file
         save_processed_data(processed_pipes)
 
-    # Add a button to view processed data
-    if st.button("View Processed Pipe Data (Table)"):
-        st.session_state['show_processed_data'] = True  # Set state for displaying data
-        st.rerun()  # Trigger rerun to show the table
+    # Display processed data table
+    st.markdown("### Processed Pipe Data Summary")
+    display_processed_data_table()
 
 
         
