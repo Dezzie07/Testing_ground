@@ -1631,10 +1631,6 @@ def pipe_main(selected_pipes):
         
 
 
-
-
-
-
 def reset_view_state():
     """Reset the view state to go back to processing view."""
     if 'show_processed_data' in st.session_state:
@@ -1651,3 +1647,6 @@ def main():
 
     # Proceed to pipe selection and calculations
     pipe_main(selected_pipes)
+
+
+main()
