@@ -1513,6 +1513,35 @@ def handle_delete_processed_data(filename="processed_pipe_data.json"):
     with open(filename, "w") as f:
         json.dump(data, f, indent=4)
 
+def display_processed_data_table(filename="processed_pipe_data.json"):
+    """Display the contents of the second JSON file as a table."""
+    st.header("Processed Pipe Data Table")
+
+    try:
+        # Load the JSON file
+        with open(filename, "r") as file:
+            processed_data = json.load(file)
+        
+        # Flatten the JSON for table display
+        table_data = [
+            {
+                "Pipe Name": pipe_name,
+                **details  # Unpack the details for each pipe
+            }
+            for pipe_name, details in processed_data.items()
+        ]
+
+        # Convert to DataFrame and display as table
+        df = pd.DataFrame(table_data)
+        st.table(df)
+
+    except FileNotFoundError:
+        st.warning("No processed data file found.")
+    except json.JSONDecodeError as e:
+        st.error(f"Error decoding JSON: {e}")
+
+
+
 
 def pipe_main(selected_pipes):
     st.title("Pipe Selection Tool")
@@ -1541,7 +1570,9 @@ def pipe_main(selected_pipes):
             start_landmark = pipe_details.get('start_landmark', 'Unknown')
             end_landmark = pipe_details.get('end_landmark', 'Unknown')
             st.markdown(f"**Start Landmark:** {start_landmark}")
+            st.markdown(f"**Start Coordinates:** {pipe_details['coordinates'][0] if pipe_details['coordinates'] else 'N/A'}")
             st.markdown(f"**End Landmark:** {end_landmark}")
+            st.markdown(f"**End Coordinates:** {pipe_details['coordinates'][-1] if pipe_details['coordinates'] else 'N/A'}")
 
             # Determine pipe material
             pipe_material = choose_pipe_material(pressure, temperature, medium)
@@ -1555,7 +1586,9 @@ def pipe_main(selected_pipes):
                 'Length': pipe_details['length'],
                 'Coordinates': pipe_details['coordinates'],
                 'Start Landmark': start_landmark,
+                'Start Coordinates': pipe_details['coordinates'][0] if pipe_details['coordinates'] else None,
                 'End Landmark': end_landmark,
+                'End Coordinates': pipe_details['coordinates'][-1] if pipe_details['coordinates'] else None,
                 'Pressure': pressure,
                 'Temperature': temperature,
                 'Medium': medium,
@@ -1571,7 +1604,9 @@ def pipe_main(selected_pipes):
                 'Length (m)': details['Length'],
                 'Material': details['Material'],
                 'Start Landmark': details['Start Landmark'],
+                'Start Coordinates': details['Start Coordinates'],
                 'End Landmark': details['End Landmark'],
+                'End Coordinates': details['End Coordinates'],
                 'Medium': details['Medium'],
                 'Total Cost (Euro)': sum(
                     option['Total Cost (Euro)'] for option in details['Pipe Data'].get(details['Material'], [])
@@ -1585,8 +1620,12 @@ def pipe_main(selected_pipes):
         # Save processed data to a second JSON file
         save_processed_data(processed_pipes)
 
+        if st.button("View Processed Pipe Data (Table)"):
+            display_processed_data_table()
+
         # Handle deletion of entries from the second JSON file
         handle_delete_processed_data()
+        
 
 
 
