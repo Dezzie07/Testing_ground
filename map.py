@@ -935,8 +935,8 @@ def stress_calculator(material, T):
             stress_b1005_316L(T)
 
 
-# Pipe filter functions for each material type
 def B1001_filter(P, distanceValue):
+    # Process data as before
     B1001_data_dict['External diameter (mm)'] = list(map(float, B1001_data_dict['External diameter (mm)']))
     B1001_data_dict['Wall thickness (mm)'] = list(map(float, B1001_data_dict['Wall thickness (mm)']))
     B1001_data_dict['Cost per 100 m (Euro)'] = list(map(float, B1001_data_dict['Cost per 100 m (Euro)']))
@@ -952,17 +952,12 @@ def B1001_filter(P, distanceValue):
                 'External diameter (mm)': B1001_data_dict['External diameter (mm)'][i],
                 'Wall thickness (mm)': B1001_data_dict['Wall thickness (mm)'][i],
                 'Cost per m (Euro)': B1001_data_dict['Cost per m (Euro)'][i],
-                'Total Cost (Euro)': B1001_data_dict['Total Cost (Euro)'][i] 
+                'Total Cost (Euro)': B1001_data_dict['Total Cost (Euro)'][i]
             })
 
+    # Return the filtered pipes
+    return available_pipes
 
-    # Display all available pipes or a message if none found
-    if not available_pipes:
-        st.write(f"No pipes found for the pressure of {P} bar.")
-    else:
-        df = pd.DataFrame(available_pipes)  # Create a DataFrame with all available options
-        st.write(f"Available ASTM A106 grade B carbon steel pipes for {P} bar or higher pressure:")
-        st.dataframe(df)  # Display the DataFrame in Streamlit
 
 
 # Similar filters for B1003, B1005, and B1008 (will follow the same pattern)
@@ -986,13 +981,8 @@ def B1003_filter(P, distanceValue):
             })
 
 
-    # Display all available pipes or a message if none found
-    if not available_pipes:
-        st.write(f"No pipes found for the pressure of {P} bar.")
-    else:
-        df = pd.DataFrame(available_pipes)  # Create a DataFrame with all available options
-        st.write(f"Available ASTM A106 grade B eztra strong carbon steel pipes for {P} bar or higher pressure:")
-        st.dataframe(df)  # Display the DataFrame in Streamlit
+    # Return the filtered pipes
+    return available_pipes
 
 def B1005_filter(P, distanceValue):
     B1005_data_dict['External diameter (mm)'] = list(map(float, B1005_data_dict['External diameter (mm)']))
@@ -1014,13 +1004,8 @@ def B1005_filter(P, distanceValue):
             })
 
 
-    # Display all available pipes or a message if none found
-    if not available_pipes:
-        st.write(f"No pipes found for the pressure of {P} bar.")
-    else:
-        df = pd.DataFrame(available_pipes)  # Create a DataFrame with all available options
-        st.write(f"Available 304L stainles steel pipes for {P} bar or higher pressure:")
-        st.dataframe(df)  # Display the DataFrame in Streamlit
+    # Return the filtered pipes
+    return available_pipes
 
 def B10051_filter(P, distanceValue):
     B10051_data_dict['External diameter (mm)'] = list(map(float, B10051_data_dict['External diameter (mm)']))
@@ -1041,13 +1026,8 @@ def B10051_filter(P, distanceValue):
                 'Total Cost (Euro)': B10051_data_dict['Total Cost (Euro)'][i]
             })
 
-    # Display all available pipes or a message if none found
-    if not available_pipes:
-        st.write(f"No pipes found for the pressure of {P} bar.")
-    else:
-        df = pd.DataFrame(available_pipes)  # Create a DataFrame with all available options
-        st.write(f"Available 316L stainles steel pipes for {P} bar or higher pressure:")
-        st.dataframe(df)  # Display the DataFrame in Streamlit
+    # Return the filtered pipes
+    return available_pipes
 
 
 def B1008_filter(P, distanceValue):
@@ -1069,32 +1049,32 @@ def B1008_filter(P, distanceValue):
                 'Total Cost (Euro)': B1008_data_dict['Total Cost (Euro)'][i]
             })
 
-     # Display all available pipes or a message if none found
-    if not available_pipes:
-        st.write(f"No pipes found for the pressure of {P} bar.")
-    else:
-        df = pd.DataFrame(available_pipes)  # Create a DataFrame with all available options
-        st.write(f"Available PVC pipes for {P} bar or higher pressure:")
-        st.dataframe(df)  # Display the DataFrame in Streamlit
+    # Return the filtered pipes
+    return available_pipes
 
 # Function to choose pipe and filter based on material
 def Pipe_finder(material, P, distanceValue):
+    pipe_data = {}  # Dictionary to store results for all pipes
+
     if material == 'B1001':
-        B1001_filter(P, distanceValue)
-        st.write("")
-        B1003_filter(P, distanceValue)
+        pipe_data['B1001'] = B1001_filter(P, distanceValue)
+        pipe_data['B1003'] = B1003_filter(P, distanceValue)
 
     elif material == 'B1005':
-        B1005_filter(P, distanceValue)
+        pipe_data['B1005'] = B1005_filter(P, distanceValue)
     
     elif material == 'B10051':
-        B10051_filter(P, distanceValue)
+        pipe_data['B10051'] = B10051_filter(P, distanceValue)
 
     elif material == 'B1008':
-        B1008_filter(P, distanceValue)
+        pipe_data['B1008'] = B1008_filter(P, distanceValue)
 
     else:
         st.write("Material not found")
+        return {}
+
+    return pipe_data  # Return all filtered pipe data as a dictionary
+    
         
 # Function to get user inputs including pressure, temperature, medium
 def get_user_inputs():
@@ -1503,7 +1483,16 @@ def main_storage():
     
     return selected_pipes
 
+############## Pipe_main ###############
 
+def save_processed_data(data, filename="processed_pipe_data.json"):
+    """Save processed pipe data to a JSON file."""
+    try:
+        with open(filename, "w") as f:
+            json.dump(data, f, indent=4)
+        st.success(f"Processed data saved successfully to {filename}!")
+    except Exception as e:
+        st.error(f"Failed to save processed data: {e}")
 
 def pipe_main(selected_pipes):
     st.title("Pipe Selection Tool")
@@ -1515,31 +1504,51 @@ def pipe_main(selected_pipes):
         st.warning("No pipes selected. Please select pipes to proceed.")
         return
 
+    # Dictionary to store processed data for all pipes
+    processed_pipes = {}
+
     # Handle the "Get Piping Info" button
     if st.button("Get Piping Info"):
-        # Calculate and display individual pipe information
-        st.markdown("### Selected Pipes Summary")
+        # Process each selected pipe
         for pipe_name, pipe_details in selected_pipes.items():
-            col1, col2 = st.columns(2)
-            with col1:
-                st.markdown(f"**Pipe Name:** {pipe_name}")
-            with col2:
-                st.markdown(f"**Distance:** {pipe_details['length']} meters")
-
-            # Display the coordinates of the drawn lines
+            st.markdown(f"### Processing {pipe_name}")
+            
+            # Display pipe details
+            st.markdown(f"**Length:** {pipe_details['length']} meters")
             st.markdown(f"**Coordinates:** {pipe_details['coordinates']}")
+            
+            # Include landmarks
+            start_landmark = pipe_details.get('start_landmark', 'Unknown')
+            end_landmark = pipe_details.get('end_landmark', 'Unknown')
+            st.markdown(f"**Start Landmark:** {start_landmark}")
+            st.markdown(f"**End Landmark:** {end_landmark}")
 
-            # Choose the pipe material
+            # Determine pipe material
             pipe_material = choose_pipe_material(pressure, temperature, medium)
             st.markdown(f"**Selected Pipe Material:** {pipe_material}")
 
-            # Calculate the stress for the given material
-            stress_calculator(pipe_material, temperature)
+            # Call Pipe_finder to get relevant data
+            pipe_data = Pipe_finder(pipe_material, pressure, pipe_details['length'])
 
-            # Calculate the price for the current pipe
-            st.markdown("#### Individual Pipe Summary:")
-            Pipe_finder(pipe_material, pressure, pipe_details['length'])
-            st.markdown("---")
+            # Consolidate all data
+            processed_pipes[pipe_name] = {
+                'Length': pipe_details['length'],
+                'Coordinates': pipe_details['coordinates'],
+                'Start Landmark': start_landmark,
+                'End Landmark': end_landmark,
+                'Pressure': pressure,
+                'Temperature': temperature,
+                'Medium': medium,
+                'Material': pipe_material,
+                'Pipe Data': pipe_data  # Contains all the filtered options
+            }
+
+        # Display summary of all processed pipes
+        st.markdown("### Processed Pipe Data Summary")
+        st.json(processed_pipes)  # Display as JSON for verification
+
+        # Save processed data to a second JSON file
+        save_processed_data(processed_pipes)
 
 
 
