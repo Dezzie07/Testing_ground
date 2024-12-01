@@ -1487,13 +1487,18 @@ def main_storage():
 ############## Pipe_main ###############
 
 def save_processed_data(data):
-    """Save processed pipe data to a JSON file."""
+    """Save processed pipe data to a JSON file and session state."""
     try:
+        # Save to the JSON file
         with open(PROCESSED_DATA_FILE, "w") as f:
             json.dump(data, f, indent=4)
+        
+        # Save to session state
+        st.session_state['processed_data'] = data
         st.success(f"Processed data saved successfully to {PROCESSED_DATA_FILE}!")
     except Exception as e:
         st.error(f"Failed to save processed data: {e}")
+
 
 
 def handle_delete_processed_data():
@@ -1544,34 +1549,43 @@ def display_processed_data_table():
     """Display the contents of the processed JSON file as a table."""
     st.header("Processed Pipe Data Table")
 
-    try:
-        # Load the JSON file
-        with open(PROCESSED_DATA_FILE, "r") as file:
-            processed_data = json.load(file)
-        
-        # Flatten the JSON for table display
-        table_data = [
-            {
-                "Pipe Name": pipe_name,
-                **details  # Unpack the details for each pipe
-            }
-            for pipe_name, details in processed_data.items()
-        ]
+    # Load data from session state or file
+    if 'processed_data' not in st.session_state:
+        try:
+            with open(PROCESSED_DATA_FILE, "r") as file:
+                st.session_state['processed_data'] = json.load(file)
+        except FileNotFoundError:
+            st.warning(f"No processed data file ({PROCESSED_DATA_FILE}) found.")
+            return
+        except json.JSONDecodeError as e:
+            st.error(f"Error decoding JSON: {e}")
+            return
 
-        # Convert to DataFrame and display as table
-        df = pd.DataFrame(table_data)
-        st.table(df)
+    # Use data from session state
+    processed_data = st.session_state['processed_data']
 
-    except FileNotFoundError:
-        st.warning(f"No processed data file ({PROCESSED_DATA_FILE}) found.")
-    except json.JSONDecodeError as e:
-        st.error(f"Error decoding JSON: {e}")
+    # Flatten the JSON for table display
+    table_data = [
+        {
+            "Pipe Name": pipe_name,
+            **details  # Unpack the details for each pipe
+        }
+        for pipe_name, details in processed_data.items()
+    ]
 
+    # Convert to DataFrame and display as table
+    df = pd.DataFrame(table_data)
+    st.table(df)
 
 
 
 def pipe_main(selected_pipes):
     st.title("Pipe Selection Tool")
+
+    # Handle state for displaying processed data
+    if 'show_processed_data' in st.session_state and st.session_state['show_processed_data']:
+        display_processed_data_table()
+        return  # Skip processing if viewing data
 
     # User inputs for pressure, temperature, and medium
     pressure, temperature, medium = get_user_inputs1()
@@ -1585,77 +1599,34 @@ def pipe_main(selected_pipes):
 
     # Handle the "Get Piping Info" button
     if st.button("Get Piping Info"):
-        # Process each selected pipe
         for pipe_name, pipe_details in selected_pipes.items():
             st.markdown(f"### Processing {pipe_name}")
             
-            # Display pipe details
-            st.markdown(f"**Length:** {pipe_details['length']} meters")
-            st.markdown(f"**Coordinates:** {pipe_details['coordinates']}")
-            
-            # Include landmarks
-            start_landmark = pipe_details.get('start_landmark', 'Unknown')
-            end_landmark = pipe_details.get('end_landmark', 'Unknown')
-            st.markdown(f"**Start Landmark:** {start_landmark}")
-            st.markdown(f"**Start Coordinates:** {pipe_details['coordinates'][0] if pipe_details['coordinates'] else 'N/A'}")
-            st.markdown(f"**End Landmark:** {end_landmark}")
-            st.markdown(f"**End Coordinates:** {pipe_details['coordinates'][-1] if pipe_details['coordinates'] else 'N/A'}")
-
-            # Determine pipe material
-            pipe_material = choose_pipe_material(pressure, temperature, medium)
-            st.markdown(f"**Selected Pipe Material:** {pipe_material}")
-
-            # Call Pipe_finder to get relevant data
-            pipe_data = Pipe_finder(pipe_material, pressure, pipe_details['length'])
-            if not pipe_data:
-                st.warning(f"No data found for {pipe_name}. Skipping...")
-                continue
-
-            # Consolidate all data
+            # Process the pipe (your existing logic)
             processed_pipes[pipe_name] = {
                 'Length': pipe_details['length'],
                 'Coordinates': pipe_details['coordinates'],
-                'Start Landmark': start_landmark,
-                'Start Coordinates': pipe_details['coordinates'][0] if pipe_details['coordinates'] else None,
-                'End Landmark': end_landmark,
-                'End Coordinates': pipe_details['coordinates'][-1] if pipe_details['coordinates'] else None,
+                'Start Landmark': pipe_details.get('start_landmark', 'Unknown'),
+                'End Landmark': pipe_details.get('end_landmark', 'Unknown'),
                 'Pressure': pressure,
                 'Temperature': temperature,
                 'Medium': medium,
-                'Material': pipe_material,
-                'Pipe Data': pipe_data  # Contains all the filtered options
+                'Material': choose_pipe_material(pressure, temperature, medium),
+                'Pipe Data': Pipe_finder(
+                    choose_pipe_material(pressure, temperature, medium), 
+                    pressure, 
+                    pipe_details['length']
+                )
             }
 
-        # Display summary of all processed pipes as a table
-        if processed_pipes:
-            st.markdown("### Processed Pipe Data Summary")
-            table_data = [
-                {
-                    'Pipe Name': name,
-                    'Length (m)': details['Length'],
-                    'Material': details['Material'],
-                    'Start Landmark': details['Start Landmark'],
-                    'Start Coordinates': details['Start Coordinates'],
-                    'End Landmark': details['End Landmark'],
-                    'End Coordinates': details['End Coordinates'],
-                    'Medium': details['Medium'],
-                    'Total Cost (Euro)': sum(
-                        option.get('Total Cost (Euro)', 0) for option in details['Pipe Data'].get(details['Material'], [])
-                    )
-                }
-                for name, details in processed_pipes.items()
-            ]
-            df = pd.DataFrame(table_data)
-            st.table(df)  # Display table
+        # Save processed data to file and session state
+        save_processed_data(processed_pipes)
 
-            # Save processed data to a second JSON file
-            save_processed_data(processed_pipes)
-        else:
-            st.warning("No processed pipe data to display.")
+    # Add a button to view processed data
+    if st.button("View Processed Pipe Data (Table)"):
+        st.session_state['show_processed_data'] = True  # Set state for displaying data
+        st.experimental_rerun()  # Trigger rerun to show the table
 
-        # Provide a button to view processed data table
-        if st.button("View Processed Pipe Data (Table)"):
-            display_processed_data_table()
 
         
 
@@ -1664,12 +1635,19 @@ def pipe_main(selected_pipes):
 
 
 
+def reset_view_state():
+    """Reset the view state to go back to processing view."""
+    if 'show_processed_data' in st.session_state:
+        del st.session_state['show_processed_data']
+
 def main():
     # Run the storage system
     selected_pipes = main_storage()
     
+    # Reset to processing view if button is clicked
+    if st.button("Reset to Processing View"):
+        reset_view_state()
+        st.experimental_rerun()
+
     # Proceed to pipe selection and calculations
     pipe_main(selected_pipes)
-
-if __name__ == "__main__":
-    main()
