@@ -1647,3 +1647,6 @@ def main():
 
     # Proceed to pipe selection and calculations
     pipe_main(selected_pipes)
+
+
+main()
