@@ -741,11 +741,6 @@ function deleteFeature(e) {{
 components.html(mapbox_map_html, height=600)
 
 ################################### Pipe calculation ##################################################
-
-# File to store data persistently
-DATA_FILE = "pipe_data.json"
-PROCESSED_DATA_FILE = "processed_pipe_data.json"
-
 #the pip price calculation par of the code:
 # Pipe data dictionaries
 B1001_data_dict = {
@@ -1188,6 +1183,8 @@ def get_landmarks():
 
 ################################## Storage ##################################################
 
+# File to store data persistently
+DATA_FILE = "pipe_data.json"
 
 def load_data():
     """Load pipe data from the JSON file."""
@@ -1488,23 +1485,23 @@ def main_storage():
 
 ############## Pipe_main ###############
 
-def save_processed_data(processed_pipes):
-    """Save processed pipes data to the second JSON file."""
+def save_processed_data(data, filename="processed_pipe_data.json"):
+    """Save processed pipe data to a JSON file."""
     try:
-        with open(PROCESSED_DATA_FILE, "w") as file:
-            json.dump(processed_pipes, file, indent=4)
-        st.success("Processed data saved successfully.")
+        with open(filename, "w") as f:
+            json.dump(data, f, indent=4)
+        st.success(f"Processed data saved successfully to {filename}!")
     except Exception as e:
         st.error(f"Failed to save processed data: {e}")
 
-def handle_delete_processed_data():
+def handle_delete_processed_data(filename="processed_pipe_data.json"):
     """Allow the user to delete an entry from the processed JSON file."""
     st.header("Delete Processed Pipe Entry")
 
+    # Load existing data
     try:
-        # Load existing data
-        with open(PROCESSED_DATA_FILE, "r") as file:
-            data = json.load(file)
+        with open(filename, "r") as f:
+            data = json.load(f)
     except FileNotFoundError:
         st.info("No processed data file found.")
         return
@@ -1513,24 +1510,16 @@ def handle_delete_processed_data():
     handle_delete_entry(data)
 
     # Save updated data
-    with open(PROCESSED_DATA_FILE, "w") as file:
-        json.dump(data, file, indent=4)
-
-
-    # Use existing handle_delete_entry logic
-    handle_delete_entry(data)
-
-    # Save updated data
     with open(filename, "w") as f:
         json.dump(data, f, indent=4)
 
-def display_processed_data_table():
+def display_processed_data_table(filename="processed_pipe_data.json"):
     """Display the contents of the second JSON file as a table."""
     st.header("Processed Pipe Data Table")
 
     try:
         # Load the JSON file
-        with open(PROCESSED_DATA_FILE, "r") as file:
+        with open(filename, "r") as file:
             processed_data = json.load(file)
         
         # Flatten the JSON for table display
@@ -1628,11 +1617,15 @@ def pipe_main(selected_pipes):
         df = pd.DataFrame(table_data)
         st.table(df)  # Display table
 
-        # Save processed data to the second JSON file
+        # Save processed data to a second JSON file
         save_processed_data(processed_pipes)
+
+        if st.button("View Processed Pipe Data (Table)"):
+            display_processed_data_table()
 
         # Handle deletion of entries from the second JSON file
         handle_delete_processed_data()
+        
 
 
 
@@ -1648,4 +1641,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
