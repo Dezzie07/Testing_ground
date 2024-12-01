@@ -1495,6 +1495,7 @@ def load_processed_data():
             st.warning("Error decoding processed pipe data. Starting with empty data.")
             return {}
     return {}
+    
 
 def save_processed_data(data):
     """Save processed pipe data to a JSON file."""
@@ -1518,6 +1519,11 @@ def handle_delete_processed_data():
             processed_data = json.load(f)
     except FileNotFoundError:
         st.info(f"No processed data file ({PROCESSED_DATA_FILE}) found.")
+        return
+
+    # Check if data is empty
+    if not processed_data:
+        st.warning("No data available to delete.")
         return
 
     # Get a list of all pipe names from processed data
@@ -1546,28 +1552,57 @@ def handle_delete_processed_data():
                     
                     # Show success message
                     st.success(f"Processed entry '{selected_entry}' deleted successfully!")
+                    st.rerun()  # Reload the page to reflect the change
                 except Exception as e:
                     st.error(f"Failed to delete entry '{selected_entry}': {e}")
             else:
                 st.warning(f"Entry '{selected_entry}' does not exist.")
 
 
+
 def display_processed_data_table():
     """Display the contents of the processed JSON file as a table."""
     st.header("Processed Pipe Data Table")
-    processed_pipes = load_processed_data()  # Always load fresh data
 
-    if not processed_pipes:
-        st.warning("No processed pipe data found.")
-        return
+    try:
+        # Load the JSON file
+        with open(PROCESSED_DATA_FILE, "r") as file:
+            processed_data = json.load(file)
 
-    # Flatten and display data
-    table_data = [
-        {"Pipe Name": name, **details}
-        for name, details in processed_pipes.items()
-    ]
-    df = pd.DataFrame(table_data)
-    st.table(df)
+        # Check if data is empty
+        if not processed_data:
+            st.warning("No processed pipe data available.")
+            return
+
+        # Prepare the data for display
+        table_data = [
+            {
+                "Pipe Name": pipe_name,
+                "Length (m)": details["Length"],
+                "Material": details["Material"],
+                "Start Landmark": details["Start Landmark"],
+                "End Landmark": details["End Landmark"],
+                "Pipe Data": details["Pipe Data"],  # This column will be expandable
+            }
+            for pipe_name, details in processed_data.items()
+        ]
+
+        # Convert to DataFrame for display
+        df = pd.DataFrame(table_data)
+
+        # Display each row with expandable sections for "Pipe Data"
+        for index, row in df.iterrows():
+            with st.expander(f"{row['Pipe Name']} (Details)"):
+                st.write(f"**Length:** {row['Length (m)']} meters")
+                st.write(f"**Material:** {row['Material']}")
+                st.write(f"**Start Landmark:** {row['Start Landmark']}")
+                st.write(f"**End Landmark:** {row['End Landmark']}")
+                st.json(row["Pipe Data"])  # Display full pipe data here
+
+    except FileNotFoundError:
+        st.warning(f"No processed data file ({PROCESSED_DATA_FILE}) found.")
+    except json.JSONDecodeError as e:
+        st.error(f"Error decoding JSON: {e}")
 
 
 
@@ -1644,13 +1679,21 @@ def reset_view_state():
     if 'show_processed_data' in st.session_state:
         del st.session_state['show_processed_data']
         
-
 def main():
-    # Run the storage system
-    selected_pipes = main_storage()
+    """Main function to handle storage and processed data display."""
+    st.title("Piping Tool")
 
-    # Proceed to pipe selection and calculations
-    pipe_main(selected_pipes)
+    # Display the Processed Pipe Data Table at the beginning
+    display_processed_data_table()
+
+    # Add functionality to delete entries from the Processed Pipe Data Table
+    handle_delete_processed_data()
+
+    # Rest of the app logic (e.g., selecting pipes, assigning inputs)
+    st.subheader("Select and Process Pipes")
+    selected_pipes = main_storage()
+    if selected_pipes:
+        pipe_main(selected_pipes)
 
 
 main()
