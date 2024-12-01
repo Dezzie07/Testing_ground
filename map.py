@@ -1494,6 +1494,26 @@ def save_processed_data(data, filename="processed_pipe_data.json"):
     except Exception as e:
         st.error(f"Failed to save processed data: {e}")
 
+def handle_delete_processed_data(filename="processed_pipe_data.json"):
+    """Allow the user to delete an entry from the processed JSON file."""
+    st.header("Delete Processed Pipe Entry")
+
+    # Load existing data
+    try:
+        with open(filename, "r") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        st.info("No processed data file found.")
+        return
+
+    # Use existing handle_delete_entry logic
+    handle_delete_entry(data)
+
+    # Save updated data
+    with open(filename, "w") as f:
+        json.dump(data, f, indent=4)
+
+
 def pipe_main(selected_pipes):
     st.title("Pipe Selection Tool")
 
@@ -1543,12 +1563,11 @@ def pipe_main(selected_pipes):
                 'Pipe Data': pipe_data  # Contains all the filtered options
             }
 
-        # Display summary of all processed pipes
-        st.markdown("### Processed Pipe Data Summary")
-        st.json(processed_pipes)  # Display as JSON for verification
-
         # Save processed data to a second JSON file
         save_processed_data(processed_pipes)
+
+        # Handle deletion of entries from the second JSON file
+        handle_delete_processed_data()
 
 
 
