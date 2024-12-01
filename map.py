@@ -1590,11 +1590,41 @@ def pipe_main(selected_pipes):
         for pipe_name, pipe_details in selected_pipes.items():
             st.markdown(f"### Processing {pipe_name}")
 
-            # (Existing logic for processing pipes...)
+            # Display pipe details
+            st.markdown(f"**Length:** {pipe_details['length']} meters")
+            st.markdown(f"**Coordinates:** {pipe_details['coordinates']}")
 
-            # Add or update processed data
+            # Include landmarks
+            start_landmark = pipe_details.get('start_landmark', 'Unknown')
+            end_landmark = pipe_details.get('end_landmark', 'Unknown')
+            st.markdown(f"**Start Landmark:** {start_landmark}")
+            st.markdown(f"**Start Coordinates:** {pipe_details['coordinates'][0] if pipe_details['coordinates'] else 'N/A'}")
+            st.markdown(f"**End Landmark:** {end_landmark}")
+            st.markdown(f"**End Coordinates:** {pipe_details['coordinates'][-1] if pipe_details['coordinates'] else 'N/A'}")
+
+            # Determine pipe material
+            pipe_material = choose_pipe_material(pressure, temperature, medium)
+            st.markdown(f"**Selected Pipe Material:** {pipe_material}")
+
+            # Call Pipe_finder to get relevant data
+            pipe_data = Pipe_finder(pipe_material, pressure, pipe_details['length'])
+            if not pipe_data:
+                st.warning(f"No data found for {pipe_name}. Skipping...")
+                continue
+
+            # Consolidate all data
             processed_pipes[pipe_name] = {
-                # Consolidated pipe data...
+                'Length': pipe_details['length'],
+                'Coordinates': pipe_details['coordinates'],
+                'Start Landmark': start_landmark,
+                'Start Coordinates': pipe_details['coordinates'][0] if pipe_details['coordinates'] else None,
+                'End Landmark': end_landmark,
+                'End Coordinates': pipe_details['coordinates'][-1] if pipe_details['coordinates'] else None,
+                'Pressure': pressure,
+                'Temperature': temperature,
+                'Medium': medium,
+                'Material': pipe_material,
+                'Pipe Data': pipe_data  # Contains all the filtered options
             }
 
         # Save updated processed data
@@ -1606,22 +1636,18 @@ def pipe_main(selected_pipes):
 
 
 
-        
 
+        
 
 def reset_view_state():
     """Reset the view state to go back to processing view."""
     if 'show_processed_data' in st.session_state:
         del st.session_state['show_processed_data']
+        
 
 def main():
     # Run the storage system
     selected_pipes = main_storage()
-    
-    # Reset to processing view if button is clicked
-    if st.button("Reset to Processing View"):
-        reset_view_state()
-        st.rerun()  # Use st.rerun() here
 
     # Proceed to pipe selection and calculations
     pipe_main(selected_pipes)
