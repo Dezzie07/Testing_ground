@@ -1679,7 +1679,8 @@ def pipe_main(selected_pipes):
             }
 
         # Save updated processed data
-        save_processed_data(PROCESSED_DATA_FILE, processed_pipes)
+        save_processed_data(processed_pipes)
+
 
         # Display summary table
         st.markdown("### Processed Pipe Data Summary")
