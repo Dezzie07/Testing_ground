@@ -1574,7 +1574,9 @@ def handle_delete_processed_data():
 
 
 def display_processed_data_table():
-    """Display the contents of the processed JSON file as a table."""
+    """
+    Display the contents of the processed JSON file as a table with added fields.
+    """
     st.header("Processed Pipe Data Table")
 
     try:
@@ -1593,24 +1595,20 @@ def display_processed_data_table():
                 "Pipe Name": pipe_name,
                 "Length (m)": details["Length"],
                 "Material": details["Material"],
+                "Medium": details["Medium"],
+                "Pressure": details["Pressure"],
+                "Temperature": details["Temperature"],
                 "Start Landmark": details["Start Landmark"],
+                "Start Coordinates": details["Start Coordinates"],
                 "End Landmark": details["End Landmark"],
-                "Pipe Data": details["Pipe Data"],  # This column will be expandable
+                "End Coordinates": details["End Coordinates"],
             }
             for pipe_name, details in processed_data.items()
         ]
 
         # Convert to DataFrame for display
         df = pd.DataFrame(table_data)
-
-        # Display each row with expandable sections for "Pipe Data"
-        for index, row in df.iterrows():
-            with st.expander(f"{row['Pipe Name']} (Details)"):
-                st.write(f"**Length:** {row['Length (m)']} meters")
-                st.write(f"**Material:** {row['Material']}")
-                st.write(f"**Start Landmark:** {row['Start Landmark']}")
-                st.write(f"**End Landmark:** {row['End Landmark']}")
-                st.json(row["Pipe Data"])  # Display full pipe data here
+        st.table(df)
 
     except FileNotFoundError:
         st.warning(f"No processed data file ({PROCESSED_DATA_FILE}) found.")
@@ -1619,7 +1617,12 @@ def display_processed_data_table():
 
 
 
+
 def pipe_main(selected_pipes):
+    """
+    Pipe Selection Tool: Process user-selected pipes, calculate critical data,
+    and save to the processed storage file.
+    """
     st.title("Pipe Selection Tool")
 
     # Load existing processed data
@@ -1643,8 +1646,8 @@ def pipe_main(selected_pipes):
             st.markdown(f"**Coordinates:** {pipe_details['coordinates']}")
 
             # Include landmarks
-            start_landmark = pipe_details.get('start_landmark', 'Unknown')
-            end_landmark = pipe_details.get('end_landmark', 'Unknown')
+            start_landmark = pipe_details.get("start_landmark", "Unknown")
+            end_landmark = pipe_details.get("end_landmark", "Unknown")
             st.markdown(f"**Start Landmark:** {start_landmark}")
             st.markdown(f"**Start Coordinates:** {pipe_details['coordinates'][0] if pipe_details['coordinates'] else 'N/A'}")
             st.markdown(f"**End Landmark:** {end_landmark}")
@@ -1662,21 +1665,21 @@ def pipe_main(selected_pipes):
 
             # Consolidate all data
             processed_pipes[pipe_name] = {
-                'Length': pipe_details['length'],
-                'Coordinates': pipe_details['coordinates'],
-                'Start Landmark': start_landmark,
-                'Start Coordinates': pipe_details['coordinates'][0] if pipe_details['coordinates'] else None,
-                'End Landmark': end_landmark,
-                'End Coordinates': pipe_details['coordinates'][-1] if pipe_details['coordinates'] else None,
-                'Pressure': pressure,
-                'Temperature': temperature,
-                'Medium': medium,
-                'Material': pipe_material,
-                'Pipe Data': pipe_data  # Contains all the filtered options
+                "Length": pipe_details["length"],
+                "Coordinates": pipe_details["coordinates"],
+                "Start Landmark": start_landmark,
+                "Start Coordinates": pipe_details["coordinates"][0] if pipe_details["coordinates"] else None,
+                "End Landmark": end_landmark,
+                "End Coordinates": pipe_details["coordinates"][-1] if pipe_details["coordinates"] else None,
+                "Pressure": pressure,
+                "Temperature": temperature,
+                "Medium": medium,
+                "Material": pipe_material,
+                "Pipe Data": pipe_data,  # Contains all the filtered options
             }
 
         # Save updated processed data
-        save_processed_data(processed_pipes)
+        save_processed_data(PROCESSED_DATA_FILE, processed_pipes)
 
         # Display summary table
         st.markdown("### Processed Pipe Data Summary")
