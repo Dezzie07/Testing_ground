@@ -1507,7 +1507,7 @@ def initialize_processed_data_file():
         try:
             with open(PROCESSED_DATA_FILE, "w") as file:
                 json.dump({}, file)  # Create an empty JSON object
-            st.info(f"Processed data file ({PROCESSED_DATA_FILE}) created.")
+            #st.info(f"Processed data file ({PROCESSED_DATA_FILE}) created.")
         except Exception as e:
             st.error(f"Failed to create processed data file: {e}")
 
