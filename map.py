@@ -1413,7 +1413,7 @@ def refresh_data(pipe_data):
             st.warning("All data has been refreshed.")
             return "Data refreshed successfully."  # Success message
         else:
-            return "Error: Failed to refresh data."  # Error message
+            return st.empty() #"Error: Failed to refresh data."  # Error message
 
 
 def select_pipes_for_calculation(pipe_data):
