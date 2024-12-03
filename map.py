@@ -1703,6 +1703,8 @@ def pipe_main(selected_pipes):
         # Display summary table
         st.markdown("### Processed Pipe Data Summary")
         display_processed_data_table()
+        
+        st.rerun()
 
 
 
@@ -1735,7 +1737,6 @@ def main():
     if selected_pipes:
         pipe_main(selected_pipes)
 
-    st.rerun()
 
 
 main()
