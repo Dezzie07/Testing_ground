@@ -1457,14 +1457,13 @@ def main_storage():
     pipe_data = add_landmarks_to_pipes(pipe_data, landmarks)
 
     # Save updated storage
-    if not save_data(pipe_data):
-        st.error("Failed to save updated storage.")
+    #if not save_data(pipe_data):
+        #st.error("Failed to save updated storage.")
 
     # Display stored pipes and landmarks
     st.header("Stored Pipes and Landmarks")
     if pipe_data:
-        df = display_data_table(pipe_data, landmarks)
-        add_download_button(df)
+        associate_pipes_with_landmarks(pipe_data, landmarks) 
         handle_delete_entry(pipe_data)
     else:
         st.info("No data stored yet. Add pipes or landmarks to get started.")
