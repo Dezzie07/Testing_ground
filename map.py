@@ -99,6 +99,7 @@ if st.sidebar.button("Search Location"):
     default_location = [latitude, longitude]
 
 # HTML and JS for Mapbox with Mapbox Draw plugin to add drawing functionalities
+# HTML and JS for Mapbox with Mapbox Draw plugin to add drawing functionalities
 mapbox_map_html = f"""
 <!DOCTYPE html>
 <html>
@@ -689,16 +690,29 @@ function sendPipeDataToBackend() {{
         document.getElementById('measurements').innerHTML = sidebarContent;
    }}
     
+// Function to toggle the sidebar
     function toggleSidebar() {{
         var sidebar = document.getElementById('sidebar');
+        var toggleButton = document.getElementById('toggleSidebar');
+
         if (sidebar.classList.contains('collapsed')) {{
             sidebar.classList.remove('collapsed');
-            document.getElementById('toggleSidebar').innerText = "Close Sidebar";
+            toggleButton.innerText = "Close Sidebar";
         }} else {{
             sidebar.classList.add('collapsed');
-            document.getElementById('toggleSidebar').innerText = "Open Sidebar";
+            toggleButton.innerText = "Open Sidebar";
         }}
     }}
+
+    // Initialize the sidebar to be collapsed when the page loads
+    document.addEventListener("DOMContentLoaded", function () {{
+        var sidebar = document.getElementById('sidebar');
+        var toggleButton = document.getElementById('toggleSidebar');
+
+        // Add the 'collapsed' class to collapse the sidebar initially
+        sidebar.classList.add('collapsed');
+        toggleButton.innerText = "Open Sidebar";
+    }});
 
   // Function to handle deletion of features
 function deleteFeature(e) {{
@@ -709,6 +723,7 @@ function deleteFeature(e) {{
         // Remove the feature's associated color and name from dictionaries
         delete featureColors[featureId];
         delete featureNames[featureId];
+        delete pipeData[featureId];
 
         // Remove the layer associated with the feature, if it exists
         if (map.getLayer('line-' + featureId)) {{
@@ -935,8 +950,8 @@ def stress_calculator(material, T):
             stress_b1005_316L(T)
 
 
-# Pipe filter functions for each material type
 def B1001_filter(P, distanceValue):
+    # Process data as before
     B1001_data_dict['External diameter (mm)'] = list(map(float, B1001_data_dict['External diameter (mm)']))
     B1001_data_dict['Wall thickness (mm)'] = list(map(float, B1001_data_dict['Wall thickness (mm)']))
     B1001_data_dict['Cost per 100 m (Euro)'] = list(map(float, B1001_data_dict['Cost per 100 m (Euro)']))
@@ -952,17 +967,12 @@ def B1001_filter(P, distanceValue):
                 'External diameter (mm)': B1001_data_dict['External diameter (mm)'][i],
                 'Wall thickness (mm)': B1001_data_dict['Wall thickness (mm)'][i],
                 'Cost per m (Euro)': B1001_data_dict['Cost per m (Euro)'][i],
-                'Total Cost (Euro)': B1001_data_dict['Total Cost (Euro)'][i] 
+                'Total Cost (Euro)': B1001_data_dict['Total Cost (Euro)'][i]
             })
 
+    # Return the filtered pipes
+    return available_pipes
 
-    # Display all available pipes or a message if none found
-    if not available_pipes:
-        st.write(f"No pipes found for the pressure of {P} bar.")
-    else:
-        df = pd.DataFrame(available_pipes)  # Create a DataFrame with all available options
-        st.write(f"Available ASTM A106 grade B carbon steel pipes for {P} bar or higher pressure:")
-        st.dataframe(df)  # Display the DataFrame in Streamlit
 
 
 # Similar filters for B1003, B1005, and B1008 (will follow the same pattern)
@@ -986,13 +996,8 @@ def B1003_filter(P, distanceValue):
             })
 
 
-    # Display all available pipes or a message if none found
-    if not available_pipes:
-        st.write(f"No pipes found for the pressure of {P} bar.")
-    else:
-        df = pd.DataFrame(available_pipes)  # Create a DataFrame with all available options
-        st.write(f"Available ASTM A106 grade B eztra strong carbon steel pipes for {P} bar or higher pressure:")
-        st.dataframe(df)  # Display the DataFrame in Streamlit
+    # Return the filtered pipes
+    return available_pipes
 
 def B1005_filter(P, distanceValue):
     B1005_data_dict['External diameter (mm)'] = list(map(float, B1005_data_dict['External diameter (mm)']))
@@ -1014,13 +1019,8 @@ def B1005_filter(P, distanceValue):
             })
 
 
-    # Display all available pipes or a message if none found
-    if not available_pipes:
-        st.write(f"No pipes found for the pressure of {P} bar.")
-    else:
-        df = pd.DataFrame(available_pipes)  # Create a DataFrame with all available options
-        st.write(f"Available 304L stainles steel pipes for {P} bar or higher pressure:")
-        st.dataframe(df)  # Display the DataFrame in Streamlit
+    # Return the filtered pipes
+    return available_pipes
 
 def B10051_filter(P, distanceValue):
     B10051_data_dict['External diameter (mm)'] = list(map(float, B10051_data_dict['External diameter (mm)']))
@@ -1041,13 +1041,8 @@ def B10051_filter(P, distanceValue):
                 'Total Cost (Euro)': B10051_data_dict['Total Cost (Euro)'][i]
             })
 
-    # Display all available pipes or a message if none found
-    if not available_pipes:
-        st.write(f"No pipes found for the pressure of {P} bar.")
-    else:
-        df = pd.DataFrame(available_pipes)  # Create a DataFrame with all available options
-        st.write(f"Available 316L stainles steel pipes for {P} bar or higher pressure:")
-        st.dataframe(df)  # Display the DataFrame in Streamlit
+    # Return the filtered pipes
+    return available_pipes
 
 
 def B1008_filter(P, distanceValue):
@@ -1069,32 +1064,32 @@ def B1008_filter(P, distanceValue):
                 'Total Cost (Euro)': B1008_data_dict['Total Cost (Euro)'][i]
             })
 
-     # Display all available pipes or a message if none found
-    if not available_pipes:
-        st.write(f"No pipes found for the pressure of {P} bar.")
-    else:
-        df = pd.DataFrame(available_pipes)  # Create a DataFrame with all available options
-        st.write(f"Available PVC pipes for {P} bar or higher pressure:")
-        st.dataframe(df)  # Display the DataFrame in Streamlit
+    # Return the filtered pipes
+    return available_pipes
 
 # Function to choose pipe and filter based on material
 def Pipe_finder(material, P, distanceValue):
+    pipe_data = {}  # Dictionary to store results for all pipes
+
     if material == 'B1001':
-        B1001_filter(P, distanceValue)
-        st.write("")
-        B1003_filter(P, distanceValue)
+        pipe_data['B1001'] = B1001_filter(P, distanceValue)
+        pipe_data['B1003'] = B1003_filter(P, distanceValue)
 
     elif material == 'B1005':
-        B1005_filter(P, distanceValue)
+        pipe_data['B1005'] = B1005_filter(P, distanceValue)
     
     elif material == 'B10051':
-        B10051_filter(P, distanceValue)
+        pipe_data['B10051'] = B10051_filter(P, distanceValue)
 
     elif material == 'B1008':
-        B1008_filter(P, distanceValue)
+        pipe_data['B1008'] = B1008_filter(P, distanceValue)
 
     else:
         st.write("Material not found")
+        return {}
+
+    return pipe_data  # Return all filtered pipe data as a dictionary
+    
         
 # Function to get user inputs including pressure, temperature, medium
 def get_user_inputs():
@@ -1205,6 +1200,7 @@ def get_landmarks():
 
 # File to store data persistently
 DATA_FILE = "pipe_data.json"
+PROCESSED_DATA_FILE = "processed_pipe_data.json"
 
 def load_data():
     """Load pipe data from the JSON file."""
@@ -1225,7 +1221,8 @@ def save_data(data):
             json.dump(data, file, indent=4)
         os.replace(temp_file, DATA_FILE)  # Replace original file atomically
     except Exception as e:
-        st.error(f"Failed to save data: {e}")
+        st.empty()
+        #st.error(f"Failed to save data: {e}")
 
 def validate_api_pipe(pipe):
     """Ensure a single pipe has all required fields."""
@@ -1311,8 +1308,8 @@ def fetch_and_integrate_data(pipe_data):
     
     if api_pipes:
         integrate_api_data(pipe_data, api_pipes)
-        st.success("Fetched and integrated pipe data from API successfully!")
-        st.write(f"Total Pipe Distance from API: {total_distance} meters")
+       # st.success("Fetched and integrated pipe data from API successfully!")
+        #st.write(f"Total Pipe Distance from API: {total_distance} meters")
     
     return landmarks
     
@@ -1328,6 +1325,7 @@ def add_landmarks_to_storage(pipe_data, landmarks):
                     "length": 0,  # Landmarks don't have a length
                     "medium": "N/A",  # Not applicable for landmarks
                 }
+    return pipe_data  # Return the updated data
 
 def associate_pipes_with_landmarks(pipe_data, landmarks):
     """Associate each pipe with its closest landmarks."""
@@ -1353,7 +1351,7 @@ def associate_pipes_with_landmarks(pipe_data, landmarks):
         )
     return associated_data
 
-def display_table(data, title="Pipe and Landmark Data (Table View)"):
+def display_table(data): ## display tableeee
     """Display a given data table in Streamlit."""
     # Create a DataFrame
     df = pd.DataFrame(data)
@@ -1367,7 +1365,7 @@ def display_data_table(pipe_data, landmarks): # LAndmarks and coords only
     # Step 1: Associate pipes with landmarks
     table_data = associate_pipes_with_landmarks(pipe_data, landmarks)
     # Step 2: Display the table
-    return display_table(table_data)
+    return table_data #display_table(table_data)
 
 
 def add_download_button(df):
@@ -1383,29 +1381,79 @@ def add_download_button(df):
 
 
 def handle_delete_entry(pipe_data):
-    """Allow the user to delete an entry by name."""
-    st.header("Delete an Entry")
-    with st.form("delete_entry_form"):
-        name_to_delete = st.text_input("Name to Delete", placeholder="Enter name")
-        delete_submitted = st.form_submit_button("Delete")
-        if delete_submitted:
-            if name_to_delete:
-                if delete_pipe(pipe_data, name_to_delete):
-                    st.success(f"Entry '{name_to_delete}' deleted successfully!")
-                else:
-                    st.error(f"Entry '{name_to_delete}' not found.")
+    """Allow the user to delete an entry by selecting from a dropdown menu."""
+    st.subheader("Delete an Entry")
+
+    # Get all stored pipe and landmark names
+    entry_names = list(pipe_data.keys())
+
+    # Dropdown for selecting an entry
+    selected_entry = st.selectbox(
+        "Select pipe or landmark to delete. This will not affect the storage.",
+        options=["Select an entry"] + entry_names,  # Add a placeholder option
+        help="Choose an entry (pipe or landmark) to delete from storage."
+    )
+
+    if selected_entry != "Select an entry":  # Ensure a valid selection
+        # Add confirmation button
+        if st.button(f"Confirm Deletion of '{selected_entry}'"):
+            if delete_pipe(pipe_data, selected_entry):
+                st.success(f"Entry '{selected_entry}' deleted successfully!")
+                st.rerun()
             else:
-                st.error("Name is required to delete an entry.")
+                st.error(f"Failed to delete entry '{selected_entry}'.")
+
 
 
 def refresh_data(pipe_data):
     """Clear all data and refresh the storage."""
     if st.button("Refresh Data"):
         pipe_data.clear()
-        save_data(pipe_data)
-        st.warning("All data has been refreshed.")
+        if save_data(pipe_data):  # Save the cleared data
+            st.warning("All data has been refreshed.")
+            return "Data refreshed successfully."  # Success message
+        else:
+            return st.empty() #"Error: Failed to refresh data."  # Error message
 
 
+def select_pipes_for_calculation(pipe_data):
+    """Allow users to select saved pipes and output their data for external calculations."""
+    # Get a list of all saved pipe names
+    pipe_names = [name for name, details in pipe_data.items() if details.get("length", 0) > 0]
+
+    # Create a dropdown menu for selecting pipes
+    selected_pipes = st.multiselect(
+        label="If the wanted pipe is not in the option, please use the Refresh Data button.",
+        options=pipe_names,
+        help="Choose the pipes you want to use for piping cost calculations."
+    )
+
+    # Fetch and display data for selected pipes
+    if selected_pipes:
+        selected_data = {name: pipe_data[name] for name in selected_pipes}
+        #st.write("Selected Pipes Data:")
+        #st.json(selected_data)  # Display as JSON for easy readability
+        
+        # Prepare data for external use
+        return selected_data
+    else:
+        st.info("No pipes selected.")
+        return {}
+        
+def add_landmarks_to_pipes(pipe_data, landmarks):
+    """Update each pipe in pipe_data with its associated landmarks."""
+    for name, details in pipe_data.items():
+        if "length" in details and details["length"] > 0:
+            # Pipes: Associate landmarks with start and end coordinates
+            start_coord = details["coordinates"][0]
+            end_coord = details["coordinates"][-1]
+            start_landmark = find_closest_landmark(start_coord, landmarks)
+            end_landmark = find_closest_landmark(end_coord, landmarks)
+            
+            # Add associated landmarks to pipe details
+            details["start_landmark"] = start_landmark
+            details["end_landmark"] = end_landmark
+    return pipe_data  # Return the updated data
 
 
 def main_storage():
@@ -1413,100 +1461,299 @@ def main_storage():
     # Load existing pipe data
     pipe_data = load_data()
 
-    st.title("Pipe and Landmark Storage System")
-    st.subheader("Store and View Pipe and Landmark Details")
+    #st.title("Pipe and Landmark Storage System")
+    #st.subheader("Store and View Pipe and Landmark Details")
 
     # Fetch and integrate API data
     landmarks = fetch_and_integrate_data(pipe_data)
 
     # Add landmarks to storage
-    add_landmarks_to_storage(pipe_data, landmarks)
+    pipe_data = add_landmarks_to_storage(pipe_data, landmarks)
+
+    # Associate landmarks with pipes and update pipe data
+    pipe_data = add_landmarks_to_pipes(pipe_data, landmarks)
 
     # Save updated storage
-    save_data(pipe_data)
+    if not save_data(pipe_data):
+        st.empty()
+        #st.error("Failed to save updated storage.")
 
     # Display stored pipes and landmarks
-    st.header("Stored Pipes and Landmarks")
+    st.header("Pipes and Landmarks")
     if pipe_data:
-        df = display_data_table(pipe_data, landmarks)
-        add_download_button(df)
+        display_data_table(pipe_data, landmarks)
+        #add_download_button(df)
         handle_delete_entry(pipe_data)
     else:
         st.info("No data stored yet. Add pipes or landmarks to get started.")
 
+    # Add pipe selection functionality
+    st.header("Select Pipes for Cost Calculation")
+    selected_pipes = select_pipes_for_calculation(pipe_data)
+
     # Refresh data
-    refresh_data(pipe_data)
+    refresh_status = refresh_data(pipe_data)
+    if refresh_status:
+        st.info(refresh_status)
+
+    # (Optional) Output selected pipes for further use
+    if selected_pipes:
+        st.success("Selected pipes ready for cost calculations.")
+    
+    return selected_pipes
+
+############## Pipe_main ###############
+
+def initialize_processed_data_file():
+    """Ensure the processed data file exists, creating it if necessary."""
+    if not os.path.exists(PROCESSED_DATA_FILE):
+        try:
+            with open(PROCESSED_DATA_FILE, "w") as file:
+                json.dump({}, file)  # Create an empty JSON object
+            #st.info(f"Processed data file ({PROCESSED_DATA_FILE}) created.")
+        except Exception as e:
+            st.error(f"Failed to create processed data file: {e}")
+
+
+
+def load_processed_data():
+    """Load processed pipe data from the JSON file."""
+    if os.path.exists(PROCESSED_DATA_FILE):
+        try:
+            with open(PROCESSED_DATA_FILE, "r") as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            st.warning("Error decoding processed pipe data. Starting with empty data.")
+            return {}
+    return {}
+    
+
+def save_processed_data(data):
+    """Save processed pipe data to a JSON file."""
+    try:
+        with open(PROCESSED_DATA_FILE, "w") as f:
+            json.dump(data, f, indent=4)
+        st.success(f"Processed data saved successfully to {PROCESSED_DATA_FILE}!")
+    except Exception as e:
+        st.error(f"Failed to save processed data: {e}")
+
+
+
+
+def handle_delete_processed_data():
+    """Allow the user to delete an entry from the processed JSON file."""
+    st.subheader("Delete items in Processed Pipe Data ")
+
+    # Load existing data
+    try:
+        with open(PROCESSED_DATA_FILE, "r") as f:
+            processed_data = json.load(f)
+    except FileNotFoundError:
+        st.info(f"No processed data file ({PROCESSED_DATA_FILE}) found.")
+        return
+
+    # Check if data is empty
+    if not processed_data:
+        st.warning("No data available to delete.")
+        return
+
+    # Get a list of all pipe names from processed data
+    processed_pipe_names = list(processed_data.keys())
+
+    # Dropdown for selecting an entry to delete
+    selected_entry = st.selectbox(
+        "Select a Pipe in the Processed Pipe Data Table to delete",
+        options=["Select an entry"] + processed_pipe_names,  # Add a placeholder option
+        help="Choose a processed pipe entry to delete."
+    )
+
+    # Handle deletion after a valid selection
+    if selected_entry != "Select an entry":
+        # Add confirmation button for deletion
+        if st.button(f"Confirm Deletion of '{selected_entry}'"):
+            # Check if selected entry exists in the data
+            if selected_entry in processed_data:
+                try:
+                    # Delete the selected entry
+                    del processed_data[selected_entry]
+                    
+                    # Save the updated data to the processed JSON file
+                    with open(PROCESSED_DATA_FILE, "w") as f:
+                        json.dump(processed_data, f, indent=4)
+                    
+                    # Show success message
+                    st.success(f"Processed entry '{selected_entry}' deleted successfully!")
+                    st.rerun()  # Reload the page to reflect the change
+                except Exception as e:
+                    st.error(f"Failed to delete entry '{selected_entry}': {e}")
+            else:
+                st.warning(f"Entry '{selected_entry}' does not exist.")
+
+
+
+def display_processed_data_table():
+    """
+    Display the contents of the processed JSON file as a table with added fields and expandable details.
+    """
+    st.header("Processed Pipe Data Table")
+
+    try:
+        # Load the JSON file
+        with open(PROCESSED_DATA_FILE, "r") as file:
+            processed_data = json.load(file)
+
+        # Check if data is empty
+        if not processed_data:
+            st.warning("No processed pipe data available.")
+            return
+
+        # Prepare the data for display
+        table_data = [
+            {
+                "Pipe Name": pipe_name,
+                "Length (m)": details["Length"],
+                "Material": details["Material"],
+                "Medium": details["Medium"],
+                "Pressure": details["Pressure"],
+                "Temperature": details["Temperature"],
+                "Start Landmark": details["Start Landmark"],
+                "Start Coordinates": details["Start Coordinates"],
+                "End Landmark": details["End Landmark"],
+                "End Coordinates": details["End Coordinates"],
+            }
+            for pipe_name, details in processed_data.items()
+        ]
+
+        # Convert to DataFrame for display
+        df = pd.DataFrame(table_data)
+
+        # Display the table for all main details
+        st.table(df)
+
+        # Add expandable sections for detailed "Pipe Data"
+        for index, row in df.iterrows():
+            with st.expander(f"{row['Pipe Name']} (Details)"):
+                st.write(f"**Length:** {row['Length (m)']} meters")
+                st.write(f"**Material:** {row['Material']}")
+                st.write(f"**Medium:** {row['Medium']}")
+                st.write(f"**Pressure:** {row['Pressure']} bar")
+                st.write(f"**Temperature:** {row['Temperature']} °C")
+                st.write(f"**Start Landmark:** {row['Start Landmark']}")
+                st.write(f"**Start Coordinates:** {row['Start Coordinates']}")
+                st.write(f"**End Landmark:** {row['End Landmark']}")
+                st.write(f"**End Coordinates:** {row['End Coordinates']}")
+                # Keep the JSON display for detailed pipe data
+                st.json(processed_data[row['Pipe Name']]["Pipe Data"])
+
+    except FileNotFoundError:
+        st.warning(f"No processed data file ({PROCESSED_DATA_FILE}) found.")
+    except json.JSONDecodeError as e:
+        st.error(f"Error decoding JSON: {e}")
 
 
 
 
 
-
-# Function to assign mediums in pipe_main()
-def pipe_main():
+def pipe_main(selected_pipes):
+    """
+    Pipe Selection Tool: Process user-selected pipes, calculate critical data,
+    and save to the processed storage file.
+    """
     st.title("Pipe Selection Tool")
+
+    # Load existing processed data
+    processed_pipes = load_processed_data()
+
     # User inputs for pressure, temperature, and medium
     pressure, temperature, medium = get_user_inputs1()
 
+    if not selected_pipes:
+        st.warning("No pipes selected. Please select pipes to proceed.")
+        return
+
     # Handle the "Get Piping Info" button
     if st.button("Get Piping Info"):
-        # Fetch pipe values
-        individual_pipes, total_distance = get_distance_values()
+        # Process each selected pipe
+        for pipe_name, pipe_details in selected_pipes.items():
+            st.markdown(f"### Processing {pipe_name}")
 
-        if individual_pipes is None or len(individual_pipes) == 0:
-            st.warning("No pipe data available yet. Please draw lines on the map to proceed.")
-        else:
-            selected_pipes = individual_pipes  # Automatically select all individual pipes
+            # Display pipe details
+            st.markdown(f"**Length:** {pipe_details['length']} meters")
+            st.markdown(f"**Coordinates:** {pipe_details['coordinates']}")
 
-            # Load existing data
-            pipe_data = load_data()
+            # Include landmarks
+            start_landmark = pipe_details.get("start_landmark", "Unknown")
+            end_landmark = pipe_details.get("end_landmark", "Unknown")
+            st.markdown(f"**Start Landmark:** {start_landmark}")
+            st.markdown(f"**Start Coordinates:** {pipe_details['coordinates'][0] if pipe_details['coordinates'] else 'N/A'}")
+            st.markdown(f"**End Landmark:** {end_landmark}")
+            st.markdown(f"**End Coordinates:** {pipe_details['coordinates'][-1] if pipe_details['coordinates'] else 'N/A'}")
 
-            # Calculate and display individual pipe information
-            st.markdown("### Selected Pipes Summary")
-            for pipe in selected_pipes:
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.markdown(f"**Pipe Name:** {pipe['name']}")
-                with col2:
-                    st.markdown(f"**Distance:** {pipe['distance']} meters")
+            # Determine pipe material
+            pipe_material = choose_pipe_material(pressure, temperature, medium)
+            st.markdown(f"**Selected Pipe Material:** {pipe_material}")
 
-                # Display the coordinates of the drawn lines
-                st.markdown(f"**Coordinates:** {pipe['coordinates']}")  # Display the coordinates
+            # Call Pipe_finder to get relevant data
+            pipe_data = Pipe_finder(pipe_material, pressure, pipe_details['length'])
+            if not pipe_data:
+                st.warning(f"No data found for {pipe_name}. Skipping...")
+                continue
 
-                # Choose the pipe material based on inputs
-                pipe_material = choose_pipe_material(pressure, temperature, medium)
-                st.markdown(f"**Selected Pipe Material:** {pipe_material}")
+            # Consolidate all data
+            processed_pipes[pipe_name] = {
+                "Length": pipe_details["length"],
+                "Coordinates": pipe_details["coordinates"],
+                "Start Landmark": start_landmark,
+                "Start Coordinates": pipe_details["coordinates"][0] if pipe_details["coordinates"] else None,
+                "End Landmark": end_landmark,
+                "End Coordinates": pipe_details["coordinates"][-1] if pipe_details["coordinates"] else None,
+                "Pressure": pressure,
+                "Temperature": temperature,
+                "Medium": medium,
+                "Material": pipe_material,
+                "Pipe Data": pipe_data,  # Contains all the filtered options
+            }
 
-                # Update the medium in storage
-                update_pipe_medium(pipe_data, pipe['name'], medium)
-
-                # Calculate the stress for the given material
-                stress_calculator(pipe_material, temperature)
-
-                # Calculate price for the current pipe
-                st.markdown("#### Individual Pipe Summary:")
-                Pipe_finder(pipe_material, pressure, pipe['distance'])
-                st.markdown("---")
-
-            # Save updated pipe data
-            save_data(pipe_data)
-
-            # Calculate and display total information for all selected pipes
-            st.markdown("### Total Information for All Selected Pipes")
-            total_selected_distance = sum(pipe['distance'] for pipe in selected_pipes)
-            col1, col2 = st.columns(2)
-            with col1:
-                st.markdown(f"**Total Selected Distance:** {total_selected_distance} meters")
-            with col2:
-                pipe_material = choose_pipe_material(pressure, temperature, medium)
-                st.markdown(f"**Selected Pipe Material:** {pipe_material}")
-
-            # Calculate the stress for the total selected material
-            stress_calculator(pipe_material, temperature)
-            st.markdown("#### Total Pipe Summary:")
-            Pipe_finder(pipe_material, pressure, total_selected_distance)
+        # Save updated processed data
+        save_processed_data(processed_pipes)
 
 
-# Run the main function
-pipe_main()
-main_storage()
+        # Display summary table
+        st.markdown("### Processed Pipe Data Summary")
+        display_processed_data_table()
+        
+        st.rerun()
+
+
+
+
+
+
+        
+
+def reset_view_state():
+    """Reset the view state to go back to processing view."""
+    if 'show_processed_data' in st.session_state:
+        del st.session_state['show_processed_data']
+        
+def main():
+    """Main function to handle storage and processed data display."""
+
+    # Ensure the processed data file is initialized
+    initialize_processed_data_file()
+
+    # Display the Processed Pipe Data Table at the beginning
+    display_processed_data_table()
+
+    # Add functionality to delete entries from the Processed Pipe Data Table
+    handle_delete_processed_data()
+
+    # Rest of the app logic (e.g., selecting pipes, assigning inputs)
+    #st.subheader("Select and Process Pipes")
+    selected_pipes = main_storage()
+    if selected_pipes:
+        pipe_main(selected_pipes)
+
+
+
+main()
