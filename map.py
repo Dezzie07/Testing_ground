@@ -1307,8 +1307,7 @@ def fetch_and_integrate_data(pipe_data):
     
     if api_pipes:
         integrate_api_data(pipe_data, api_pipes)
-        st.success("Fetched and integrated pipe data from API successfully!")
-        st.write(f"Total Pipe Distance from API: {total_distance} meters")
+    st.rerun()
     
     return landmarks
     
@@ -1429,13 +1428,13 @@ def select_pipes_for_calculation(pipe_data):
     # Fetch and display data for selected pipes
     if selected_pipes:
         selected_data = {name: pipe_data[name] for name in selected_pipes}
-        st.write("Selected Pipes Data:")
-        st.json(selected_data)  # Display as JSON for easy readability
+        #st.write("Selected Pipes Data:")
+        #st.json(selected_data)  # Display as JSON for easy readability
         
         # Prepare data for external use
         return selected_data
     else:
-        st.info("No pipes selected.")
+        #st.info("No pipes selected.")
         return {}
         
 def add_landmarks_to_pipes(pipe_data, landmarks):
