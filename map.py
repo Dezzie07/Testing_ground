@@ -1335,7 +1335,7 @@ def associate_pipes_with_landmarks(pipe_data, landmarks):
         )
     return associated_data
 
-def display_table(data, title="Pipe and Landmark Data (Table View)"):
+def display_table(data, title="Pipe and Landmark Data (Table View)"): ## display tableeee
     """Display a given data table in Streamlit."""
     # Create a DataFrame
     df = pd.DataFrame(data)
@@ -1349,7 +1349,7 @@ def display_data_table(pipe_data, landmarks): # LAndmarks and coords only
     # Step 1: Associate pipes with landmarks
     table_data = associate_pipes_with_landmarks(pipe_data, landmarks)
     # Step 2: Display the table
-    return display_table(table_data)
+    return table_data #display_table(table_data)
 
 
 def add_download_button(df):
@@ -1457,13 +1457,14 @@ def main_storage():
     pipe_data = add_landmarks_to_pipes(pipe_data, landmarks)
 
     # Save updated storage
-    #if not save_data(pipe_data):
-        #st.error("Failed to save updated storage.")
+    if not save_data(pipe_data):
+        st.error("Failed to save updated storage.")
 
     # Display stored pipes and landmarks
     st.header("Stored Pipes and Landmarks")
     if pipe_data:
-        associate_pipes_with_landmarks(pipe_data, landmarks) 
+        display_data_table(pipe_data, landmarks)
+        #add_download_button(df)
         handle_delete_entry(pipe_data)
     else:
         st.info("No data stored yet. Add pipes or landmarks to get started.")
