@@ -1473,10 +1473,10 @@ def main_storage():
 
     # Save updated storage
     if not save_data(pipe_data):
-        st.error("Failed to save updated storage.")
+        #st.error("Failed to save updated storage.")
 
     # Display stored pipes and landmarks
-    st.header("Stored Pipes and Landmarks")
+    #st.header("Stored Pipes and Landmarks")
     if pipe_data:
         display_data_table(pipe_data, landmarks)
         #add_download_button(df)
@@ -1532,7 +1532,7 @@ def save_processed_data(data):
             json.dump(data, f, indent=4)
         st.success(f"Processed data saved successfully to {PROCESSED_DATA_FILE}!")
     except Exception as e:
-        st.error(f"Failed to save processed data: {e}")
+        #st.error(f"Failed to save processed data: {e}")
 
 
 
@@ -1551,7 +1551,7 @@ def handle_delete_processed_data():
 
     # Check if data is empty
     if not processed_data:
-        st.warning("No data available to delete.")
+        st.warning("No data available to delete yet.")
         return
 
     # Get a list of all pipe names from processed data
