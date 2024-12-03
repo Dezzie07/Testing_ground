@@ -1474,7 +1474,6 @@ def main_storage():
     # Save updated storage
     if not save_data(pipe_data):
         #st.error("Failed to save updated storage.")
-        pass
 
     # Display stored pipes and landmarks
     #st.header("Stored Pipes and Landmarks")
@@ -1532,7 +1531,7 @@ def save_processed_data(data):
         with open(PROCESSED_DATA_FILE, "w") as f:
             json.dump(data, f, indent=4)
         st.success(f"Processed data saved successfully to {PROCESSED_DATA_FILE}!")
-    #except Exception as e:
+    except Exception as e:
         #st.error(f"Failed to save processed data: {e}")
 
 
