@@ -99,6 +99,7 @@ if st.sidebar.button("Search Location"):
     default_location = [latitude, longitude]
 
 # HTML and JS for Mapbox with Mapbox Draw plugin to add drawing functionalities
+# HTML and JS for Mapbox with Mapbox Draw plugin to add drawing functionalities
 mapbox_map_html = f"""
 <!DOCTYPE html>
 <html>
@@ -689,16 +690,29 @@ function sendPipeDataToBackend() {{
         document.getElementById('measurements').innerHTML = sidebarContent;
    }}
     
+// Function to toggle the sidebar
     function toggleSidebar() {{
         var sidebar = document.getElementById('sidebar');
+        var toggleButton = document.getElementById('toggleSidebar');
+
         if (sidebar.classList.contains('collapsed')) {{
             sidebar.classList.remove('collapsed');
-            document.getElementById('toggleSidebar').innerText = "Close Sidebar";
+            toggleButton.innerText = "Close Sidebar";
         }} else {{
             sidebar.classList.add('collapsed');
-            document.getElementById('toggleSidebar').innerText = "Open Sidebar";
+            toggleButton.innerText = "Open Sidebar";
         }}
     }}
+
+    // Initialize the sidebar to be collapsed when the page loads
+    document.addEventListener("DOMContentLoaded", function () {{
+        var sidebar = document.getElementById('sidebar');
+        var toggleButton = document.getElementById('toggleSidebar');
+
+        // Add the 'collapsed' class to collapse the sidebar initially
+        sidebar.classList.add('collapsed');
+        toggleButton.innerText = "Open Sidebar";
+    }});
 
   // Function to handle deletion of features
 function deleteFeature(e) {{
@@ -709,6 +723,7 @@ function deleteFeature(e) {{
         // Remove the feature's associated color and name from dictionaries
         delete featureColors[featureId];
         delete featureNames[featureId];
+        delete pipeData[featureId];
 
         // Remove the layer associated with the feature, if it exists
         if (map.getLayer('line-' + featureId)) {{
@@ -1292,8 +1307,8 @@ def fetch_and_integrate_data(pipe_data):
     
     if api_pipes:
         integrate_api_data(pipe_data, api_pipes)
-        st.success("Fetched and integrated pipe data from API successfully!")
-        st.write(f"Total Pipe Distance from API: {total_distance} meters")
+       # st.success("Fetched and integrated pipe data from API successfully!")
+        #st.write(f"Total Pipe Distance from API: {total_distance} meters")
     
     return landmarks
     
@@ -1335,7 +1350,7 @@ def associate_pipes_with_landmarks(pipe_data, landmarks):
         )
     return associated_data
 
-def display_table(data, title="Pipe and Landmark Data (Table View)"):
+def display_table(data): ## display tableeee
     """Display a given data table in Streamlit."""
     # Create a DataFrame
     df = pd.DataFrame(data)
@@ -1349,7 +1364,7 @@ def display_data_table(pipe_data, landmarks): # LAndmarks and coords only
     # Step 1: Associate pipes with landmarks
     table_data = associate_pipes_with_landmarks(pipe_data, landmarks)
     # Step 2: Display the table
-    return display_table(table_data)
+    return table_data #display_table(table_data)
 
 
 def add_download_button(df):
@@ -1406,7 +1421,7 @@ def select_pipes_for_calculation(pipe_data):
 
     # Create a dropdown menu for selecting pipes
     selected_pipes = st.multiselect(
-        label="Select Pipes for Cost Calculation",
+        label="",
         options=pipe_names,
         help="Choose the pipes you want to use for piping cost calculations."
     )
@@ -1414,8 +1429,8 @@ def select_pipes_for_calculation(pipe_data):
     # Fetch and display data for selected pipes
     if selected_pipes:
         selected_data = {name: pipe_data[name] for name in selected_pipes}
-        st.write("Selected Pipes Data:")
-        st.json(selected_data)  # Display as JSON for easy readability
+        #st.write("Selected Pipes Data:")
+        #st.json(selected_data)  # Display as JSON for easy readability
         
         # Prepare data for external use
         return selected_data
@@ -1444,8 +1459,8 @@ def main_storage():
     # Load existing pipe data
     pipe_data = load_data()
 
-    st.title("Pipe and Landmark Storage System")
-    st.subheader("Store and View Pipe and Landmark Details")
+    #st.title("Pipe and Landmark Storage System")
+    #st.subheader("Store and View Pipe and Landmark Details")
 
     # Fetch and integrate API data
     landmarks = fetch_and_integrate_data(pipe_data)
@@ -1463,8 +1478,8 @@ def main_storage():
     # Display stored pipes and landmarks
     st.header("Stored Pipes and Landmarks")
     if pipe_data:
-        df = display_data_table(pipe_data, landmarks)
-        add_download_button(df)
+        display_data_table(pipe_data, landmarks)
+        #add_download_button(df)
         handle_delete_entry(pipe_data)
     else:
         st.info("No data stored yet. Add pipes or landmarks to get started.")
@@ -1486,6 +1501,30 @@ def main_storage():
 
 ############## Pipe_main ###############
 
+def initialize_processed_data_file():
+    """Ensure the processed data file exists, creating it if necessary."""
+    if not os.path.exists(PROCESSED_DATA_FILE):
+        try:
+            with open(PROCESSED_DATA_FILE, "w") as file:
+                json.dump({}, file)  # Create an empty JSON object
+            st.info(f"Processed data file ({PROCESSED_DATA_FILE}) created.")
+        except Exception as e:
+            st.error(f"Failed to create processed data file: {e}")
+
+
+
+def load_processed_data():
+    """Load processed pipe data from the JSON file."""
+    if os.path.exists(PROCESSED_DATA_FILE):
+        try:
+            with open(PROCESSED_DATA_FILE, "r") as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            st.warning("Error decoding processed pipe data. Starting with empty data.")
+            return {}
+    return {}
+    
+
 def save_processed_data(data):
     """Save processed pipe data to a JSON file."""
     try:
@@ -1496,9 +1535,11 @@ def save_processed_data(data):
         st.error(f"Failed to save processed data: {e}")
 
 
+
+
 def handle_delete_processed_data():
     """Allow the user to delete an entry from the processed JSON file."""
-    st.header("Delete Processed Pipe Entry")
+    st.header("Delete items in Processed Pipe ")
 
     # Load existing data
     try:
@@ -1508,12 +1549,17 @@ def handle_delete_processed_data():
         st.info(f"No processed data file ({PROCESSED_DATA_FILE}) found.")
         return
 
+    # Check if data is empty
+    if not processed_data:
+        st.warning("No data available to delete.")
+        return
+
     # Get a list of all pipe names from processed data
     processed_pipe_names = list(processed_data.keys())
 
     # Dropdown for selecting an entry to delete
     selected_entry = st.selectbox(
-        "Select a Pipe Entry to Delete",
+        "Select a Pipe in the Processed Pipe Data Table to delete",
         options=["Select an entry"] + processed_pipe_names,  # Add a placeholder option
         help="Choose a processed pipe entry to delete."
     )
@@ -1534,33 +1580,67 @@ def handle_delete_processed_data():
                     
                     # Show success message
                     st.success(f"Processed entry '{selected_entry}' deleted successfully!")
+                    st.rerun()  # Reload the page to reflect the change
                 except Exception as e:
                     st.error(f"Failed to delete entry '{selected_entry}': {e}")
             else:
                 st.warning(f"Entry '{selected_entry}' does not exist.")
 
 
+
 def display_processed_data_table():
-    """Display the contents of the processed JSON file as a table."""
+    """
+    Display the contents of the processed JSON file as a table with added fields and expandable details.
+    """
     st.header("Processed Pipe Data Table")
 
     try:
         # Load the JSON file
         with open(PROCESSED_DATA_FILE, "r") as file:
             processed_data = json.load(file)
-        
-        # Flatten the JSON for table display
+
+        # Check if data is empty
+        if not processed_data:
+            st.warning("No processed pipe data available.")
+            return
+
+        # Prepare the data for display
         table_data = [
             {
                 "Pipe Name": pipe_name,
-                **details  # Unpack the details for each pipe
+                "Length (m)": details["Length"],
+                "Material": details["Material"],
+                "Medium": details["Medium"],
+                "Pressure": details["Pressure"],
+                "Temperature": details["Temperature"],
+                "Start Landmark": details["Start Landmark"],
+                "Start Coordinates": details["Start Coordinates"],
+                "End Landmark": details["End Landmark"],
+                "End Coordinates": details["End Coordinates"],
             }
             for pipe_name, details in processed_data.items()
         ]
 
-        # Convert to DataFrame and display as table
+        # Convert to DataFrame for display
         df = pd.DataFrame(table_data)
+
+        # Display the table for all main details
         st.table(df)
+
+        # Add expandable sections for detailed "Pipe Data"
+        for index, row in df.iterrows():
+            with st.expander(f"{row['Pipe Name']} (Details)"):
+                st.write(f"**Length:** {row['Length (m)']} meters")
+                st.write(f"**Material:** {row['Material']}")
+                st.write(f"**Medium:** {row['Medium']}")
+                st.write(f"**Pressure:** {row['Pressure']} bar")
+                st.write(f"**Temperature:** {row['Temperature']} °C")
+                st.write(f"**Start Landmark:** {row['Start Landmark']}")
+                st.write(f"**Start Coordinates:** {row['Start Coordinates']}")
+                st.write(f"**End Landmark:** {row['End Landmark']}")
+                st.write(f"**End Coordinates:** {row['End Coordinates']}")
+                # Keep the JSON display for detailed pipe data
+                st.json(processed_data[row['Pipe Name']]["Pipe Data"])
 
     except FileNotFoundError:
         st.warning(f"No processed data file ({PROCESSED_DATA_FILE}) found.")
@@ -1570,8 +1650,16 @@ def display_processed_data_table():
 
 
 
+
 def pipe_main(selected_pipes):
+    """
+    Pipe Selection Tool: Process user-selected pipes, calculate critical data,
+    and save to the processed storage file.
+    """
     st.title("Pipe Selection Tool")
+
+    # Load existing processed data
+    processed_pipes = load_processed_data()
 
     # User inputs for pressure, temperature, and medium
     pressure, temperature, medium = get_user_inputs1()
@@ -1580,22 +1668,19 @@ def pipe_main(selected_pipes):
         st.warning("No pipes selected. Please select pipes to proceed.")
         return
 
-    # Dictionary to store processed data for all pipes
-    processed_pipes = {}
-
     # Handle the "Get Piping Info" button
     if st.button("Get Piping Info"):
         # Process each selected pipe
         for pipe_name, pipe_details in selected_pipes.items():
             st.markdown(f"### Processing {pipe_name}")
-            
+
             # Display pipe details
             st.markdown(f"**Length:** {pipe_details['length']} meters")
             st.markdown(f"**Coordinates:** {pipe_details['coordinates']}")
-            
+
             # Include landmarks
-            start_landmark = pipe_details.get('start_landmark', 'Unknown')
-            end_landmark = pipe_details.get('end_landmark', 'Unknown')
+            start_landmark = pipe_details.get("start_landmark", "Unknown")
+            end_landmark = pipe_details.get("end_landmark", "Unknown")
             st.markdown(f"**Start Landmark:** {start_landmark}")
             st.markdown(f"**Start Coordinates:** {pipe_details['coordinates'][0] if pipe_details['coordinates'] else 'N/A'}")
             st.markdown(f"**End Landmark:** {end_landmark}")
@@ -1607,64 +1692,65 @@ def pipe_main(selected_pipes):
 
             # Call Pipe_finder to get relevant data
             pipe_data = Pipe_finder(pipe_material, pressure, pipe_details['length'])
+            if not pipe_data:
+                st.warning(f"No data found for {pipe_name}. Skipping...")
+                continue
 
             # Consolidate all data
             processed_pipes[pipe_name] = {
-                'Length': pipe_details['length'],
-                'Coordinates': pipe_details['coordinates'],
-                'Start Landmark': start_landmark,
-                'Start Coordinates': pipe_details['coordinates'][0] if pipe_details['coordinates'] else None,
-                'End Landmark': end_landmark,
-                'End Coordinates': pipe_details['coordinates'][-1] if pipe_details['coordinates'] else None,
-                'Pressure': pressure,
-                'Temperature': temperature,
-                'Medium': medium,
-                'Material': pipe_material,
-                'Pipe Data': pipe_data  # Contains all the filtered options
+                "Length": pipe_details["length"],
+                "Coordinates": pipe_details["coordinates"],
+                "Start Landmark": start_landmark,
+                "Start Coordinates": pipe_details["coordinates"][0] if pipe_details["coordinates"] else None,
+                "End Landmark": end_landmark,
+                "End Coordinates": pipe_details["coordinates"][-1] if pipe_details["coordinates"] else None,
+                "Pressure": pressure,
+                "Temperature": temperature,
+                "Medium": medium,
+                "Material": pipe_material,
+                "Pipe Data": pipe_data,  # Contains all the filtered options
             }
 
-        # Display summary of all processed pipes as a table
-        st.markdown("### Processed Pipe Data Summary")
-        table_data = [
-            {
-                'Pipe Name': name,
-                'Length (m)': details['Length'],
-                'Material': details['Material'],
-                'Start Landmark': details['Start Landmark'],
-                'Start Coordinates': details['Start Coordinates'],
-                'End Landmark': details['End Landmark'],
-                'End Coordinates': details['End Coordinates'],
-                'Medium': details['Medium'],
-                'Total Cost (Euro)': sum(
-                    option['Total Cost (Euro)'] for option in details['Pipe Data'].get(details['Material'], [])
-                )
-            }
-            for name, details in processed_pipes.items()
-        ]
-        df = pd.DataFrame(table_data)
-        st.table(df)  # Display table
-
-        # Save processed data to a second JSON file
+        # Save updated processed data
         save_processed_data(processed_pipes)
 
-        if st.button("View Processed Pipe Data (Table)"):
-            display_processed_data_table()
 
-        # Handle deletion of entries from the second JSON file
-        handle_delete_processed_data()
+        # Display summary table
+        st.markdown("### Processed Pipe Data Summary")
+        display_processed_data_table()
+        
+        st.rerun()
+
+
+
+
+
+
         
 
-
-
-
-
-
+def reset_view_state():
+    """Reset the view state to go back to processing view."""
+    if 'show_processed_data' in st.session_state:
+        del st.session_state['show_processed_data']
+        
 def main():
-    # Run the storage system
-    selected_pipes = main_storage()
-    
-    # Proceed to pipe selection and calculations
-    pipe_main(selected_pipes)
+    """Main function to handle storage and processed data display."""
 
-if __name__ == "__main__":
-    main()
+    # Ensure the processed data file is initialized
+    initialize_processed_data_file()
+
+    # Display the Processed Pipe Data Table at the beginning
+    display_processed_data_table()
+
+    # Add functionality to delete entries from the Processed Pipe Data Table
+    handle_delete_processed_data()
+
+    # Rest of the app logic (e.g., selecting pipes, assigning inputs)
+    #st.subheader("Select and Process Pipes")
+    selected_pipes = main_storage()
+    if selected_pipes:
+        pipe_main(selected_pipes)
+
+
+
+main()
