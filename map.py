@@ -1734,7 +1734,8 @@ def main():
     selected_pipes = main_storage()
     if selected_pipes:
         pipe_main(selected_pipes)
-        st.rerun
+
+    st.rerun()
 
 
 main()
