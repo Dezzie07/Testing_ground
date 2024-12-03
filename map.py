@@ -1382,7 +1382,7 @@ def add_download_button(df):
 
 def handle_delete_entry(pipe_data):
     """Allow the user to delete an entry by selecting from a dropdown menu."""
-    st.header("Delete an Entry")
+    st.subheader("Delete an Entry")
 
     # Get all stored pipe and landmark names
     entry_names = list(pipe_data.keys())
@@ -1542,7 +1542,7 @@ def save_processed_data(data):
 
 def handle_delete_processed_data():
     """Allow the user to delete an entry from the processed JSON file."""
-    st.header("Delete items in Processed Pipe Data ")
+    st.subheader("Delete items in Processed Pipe Data ")
 
     # Load existing data
     try:
