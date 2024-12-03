@@ -1602,13 +1602,27 @@ def display_processed_data_table():
                 "Start Coordinates": details["Start Coordinates"],
                 "End Landmark": details["End Landmark"],
                 "End Coordinates": details["End Coordinates"],
+                "Pipe Data": "Expand for details",  # Placeholder for expandable section
             }
             for pipe_name, details in processed_data.items()
         ]
 
         # Convert to DataFrame for display
         df = pd.DataFrame(table_data)
-        st.table(df)
+
+        # Display each row with expandable sections for "Pipe Data"
+        for index, row in df.iterrows():
+            with st.expander(f"{row['Pipe Name']} (Details)"):
+                st.write(f"**Length:** {row['Length (m)']} meters")
+                st.write(f"**Material:** {row['Material']}")
+                st.write(f"**Medium:** {row['Medium']}")
+                st.write(f"**Pressure:** {row['Pressure']} bar")
+                st.write(f"**Temperature:** {row['Temperature']} °C")
+                st.write(f"**Start Landmark:** {row['Start Landmark']}")
+                st.write(f"**Start Coordinates:** {row['Start Coordinates']}")
+                st.write(f"**End Landmark:** {row['End Landmark']}")
+                st.write(f"**End Coordinates:** {row['End Coordinates']}")
+                st.json(processed_data[row['Pipe Name']]["Pipe Data"])  # Show detailed pipe data
 
     except FileNotFoundError:
         st.warning(f"No processed data file ({PROCESSED_DATA_FILE}) found.")
@@ -1681,10 +1695,11 @@ def pipe_main(selected_pipes):
         # Save updated processed data
         save_processed_data(processed_pipes)
 
-
         # Display summary table
         st.markdown("### Processed Pipe Data Summary")
         display_processed_data_table()
+
+
 
 
 
