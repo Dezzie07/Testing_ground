@@ -1421,7 +1421,7 @@ def select_pipes_for_calculation(pipe_data):
 
     # Create a dropdown menu for selecting pipes
     selected_pipes = st.multiselect(
-        label="Select Pipes for Cost Calculation",
+        label="",
         options=pipe_names,
         help="Choose the pipes you want to use for piping cost calculations."
     )
@@ -1429,8 +1429,8 @@ def select_pipes_for_calculation(pipe_data):
     # Fetch and display data for selected pipes
     if selected_pipes:
         selected_data = {name: pipe_data[name] for name in selected_pipes}
-        st.write("Selected Pipes Data:")
-        st.json(selected_data)  # Display as JSON for easy readability
+        #st.write("Selected Pipes Data:")
+        #st.json(selected_data)  # Display as JSON for easy readability
         
         # Prepare data for external use
         return selected_data
