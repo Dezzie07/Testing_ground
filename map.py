@@ -1221,7 +1221,8 @@ def save_data(data):
             json.dump(data, file, indent=4)
         os.replace(temp_file, DATA_FILE)  # Replace original file atomically
     except Exception as e:
-        st.error(f"Failed to save data: {e}")
+        st.empty()
+        #st.error(f"Failed to save data: {e}")
 
 def validate_api_pipe(pipe):
     """Ensure a single pipe has all required fields."""
