@@ -1389,7 +1389,7 @@ def handle_delete_entry(pipe_data):
 
     # Dropdown for selecting an entry
     selected_entry = st.selectbox(
-        "Select an Entry to Delete",
+        "Select pipe or landmark to delete. This will not affect the storage.",
         options=["Select an entry"] + entry_names,  # Add a placeholder option
         help="Choose an entry (pipe or landmark) to delete from storage."
     )
@@ -1399,6 +1399,7 @@ def handle_delete_entry(pipe_data):
         if st.button(f"Confirm Deletion of '{selected_entry}'"):
             if delete_pipe(pipe_data, selected_entry):
                 st.success(f"Entry '{selected_entry}' deleted successfully!")
+                st.rerun()
             else:
                 st.error(f"Failed to delete entry '{selected_entry}'.")
 
@@ -1422,7 +1423,7 @@ def select_pipes_for_calculation(pipe_data):
 
     # Create a dropdown menu for selecting pipes
     selected_pipes = st.multiselect(
-        label="",
+        label="If the wanted pipe is not in the option, please use the Refresh Data button.",
         options=pipe_names,
         help="Choose the pipes you want to use for piping cost calculations."
     )
@@ -1478,7 +1479,7 @@ def main_storage():
         #st.error("Failed to save updated storage.")
 
     # Display stored pipes and landmarks
-    st.header("Stored Pipes and Landmarks")
+    st.header("Pipes and Landmarks")
     if pipe_data:
         display_data_table(pipe_data, landmarks)
         #add_download_button(df)
@@ -1541,7 +1542,7 @@ def save_processed_data(data):
 
 def handle_delete_processed_data():
     """Allow the user to delete an entry from the processed JSON file."""
-    st.header("Delete items in Processed Pipe ")
+    st.header("Delete items in Processed Pipe Data ")
 
     # Load existing data
     try:
