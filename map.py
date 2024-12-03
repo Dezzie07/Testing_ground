@@ -1307,8 +1307,8 @@ def fetch_and_integrate_data(pipe_data):
     
     if api_pipes:
         integrate_api_data(pipe_data, api_pipes)
-        st.success("Fetched and integrated pipe data from API successfully!")
-        st.write(f"Total Pipe Distance from API: {total_distance} meters")
+       # st.success("Fetched and integrated pipe data from API successfully!")
+        #st.write(f"Total Pipe Distance from API: {total_distance} meters")
     
     return landmarks
     
@@ -1459,8 +1459,8 @@ def main_storage():
     # Load existing pipe data
     pipe_data = load_data()
 
-    st.title("Pipe and Landmark Storage System")
-    st.subheader("Store and View Pipe and Landmark Details")
+    #st.title("Pipe and Landmark Storage System")
+    #st.subheader("Store and View Pipe and Landmark Details")
 
     # Fetch and integrate API data
     landmarks = fetch_and_integrate_data(pipe_data)
@@ -1539,7 +1539,7 @@ def save_processed_data(data):
 
 def handle_delete_processed_data():
     """Allow the user to delete an entry from the processed JSON file."""
-    st.header("Delete Processed Pipe Entry")
+    st.header("Delete items in Processed Pipe ")
 
     # Load existing data
     try:
@@ -1559,7 +1559,7 @@ def handle_delete_processed_data():
 
     # Dropdown for selecting an entry to delete
     selected_entry = st.selectbox(
-        "Select a Pipe Entry to Delete",
+        "Select a Pipe in the Processed Pipe Data Table to delete",
         options=["Select an entry"] + processed_pipe_names,  # Add a placeholder option
         help="Choose a processed pipe entry to delete."
     )
@@ -1735,7 +1735,6 @@ def reset_view_state():
         
 def main():
     """Main function to handle storage and processed data display."""
-    st.title("Piping Tool")
 
     # Ensure the processed data file is initialized
     initialize_processed_data_file()
@@ -1747,7 +1746,7 @@ def main():
     handle_delete_processed_data()
 
     # Rest of the app logic (e.g., selecting pipes, assigning inputs)
-    st.subheader("Select and Process Pipes")
+    #st.subheader("Select and Process Pipes")
     selected_pipes = main_storage()
     if selected_pipes:
         pipe_main(selected_pipes)
