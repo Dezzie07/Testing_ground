@@ -1335,7 +1335,7 @@ def associate_pipes_with_landmarks(pipe_data, landmarks):
         )
     return associated_data
 
-def display_table(data, title="Pipe and Landmark Data (Table View)"): ## display tableeee
+def display_table(data): ## display tableeee
     """Display a given data table in Streamlit."""
     # Create a DataFrame
     df = pd.DataFrame(data)
@@ -1575,7 +1575,7 @@ def handle_delete_processed_data():
 
 def display_processed_data_table():
     """
-    Display the contents of the processed JSON file as a table with added fields.
+    Display the contents of the processed JSON file as a table with added fields and expandable details.
     """
     st.header("Processed Pipe Data Table")
 
@@ -1602,7 +1602,6 @@ def display_processed_data_table():
                 "Start Coordinates": details["Start Coordinates"],
                 "End Landmark": details["End Landmark"],
                 "End Coordinates": details["End Coordinates"],
-                "Pipe Data": "Expand for details",  # Placeholder for expandable section
             }
             for pipe_name, details in processed_data.items()
         ]
@@ -1610,7 +1609,10 @@ def display_processed_data_table():
         # Convert to DataFrame for display
         df = pd.DataFrame(table_data)
 
-        # Display each row with expandable sections for "Pipe Data"
+        # Display the table for all main details
+        st.table(df)
+
+        # Add expandable sections for detailed "Pipe Data"
         for index, row in df.iterrows():
             with st.expander(f"{row['Pipe Name']} (Details)"):
                 st.write(f"**Length:** {row['Length (m)']} meters")
@@ -1622,12 +1624,14 @@ def display_processed_data_table():
                 st.write(f"**Start Coordinates:** {row['Start Coordinates']}")
                 st.write(f"**End Landmark:** {row['End Landmark']}")
                 st.write(f"**End Coordinates:** {row['End Coordinates']}")
-                st.json(processed_data[row['Pipe Name']]["Pipe Data"])  # Show detailed pipe data
+                # Keep the JSON display for detailed pipe data
+                st.json(processed_data[row['Pipe Name']]["Pipe Data"])
 
     except FileNotFoundError:
         st.warning(f"No processed data file ({PROCESSED_DATA_FILE}) found.")
     except json.JSONDecodeError as e:
         st.error(f"Error decoding JSON: {e}")
+
 
 
 
@@ -1694,6 +1698,7 @@ def pipe_main(selected_pipes):
 
         # Save updated processed data
         save_processed_data(processed_pipes)
+
 
         # Display summary table
         st.markdown("### Processed Pipe Data Summary")
