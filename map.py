@@ -1627,6 +1627,14 @@ def display_processed_data_table():
         # Display the table for all main details
         st.table(df)
 
+        csv_data = df.to_csv(index=False)  # Convert DataFrame to CSV
+        st.download_button(
+            label="Download Processed Pipe Data as CSV",
+            data=csv_data,
+            file_name="processed_pipe_data.csv",
+            mime="text/csv",
+        )
+
         # Add expandable sections for detailed "Pipe Data"
         for index, row in df.iterrows():
             with st.expander(f"{row['Pipe Name']} (Details)"):
