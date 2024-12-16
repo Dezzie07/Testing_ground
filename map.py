@@ -1604,6 +1604,8 @@ def display_processed_data_table():
             st.warning("No processed pipe data available.")
             return
 
+        st.json(processed_data)
+
         # Prepare the data for display
         table_data = [
             {
@@ -1728,10 +1730,8 @@ def pipe_main(selected_pipes):
         st.markdown("### Processed Pipe Data Summary")
         display_processed_data_table()
         
-        #st.rerun()
+        st.rerun()
 
-        st.write("Processed Data Structure:")
-        st.json(processed_data)
 
 
 
