@@ -1609,6 +1609,7 @@ def display_processed_data_table():
             {
                 "Pipe Name": pipe_name,
                 "Length (m)": details["Length"],
+                "Coordinates": details["coordinates"],
                 "Material": details["Material"],
                 "Medium": details["Medium"],
                 "Pressure": details["Pressure"],
