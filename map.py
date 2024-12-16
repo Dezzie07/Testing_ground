@@ -1604,14 +1604,14 @@ def display_processed_data_table():
             st.warning("No processed pipe data available.")
             return
 
-        st.json(processed_data)
+        #st.json(processed_data)
 
         # Prepare the data for display
         table_data = [
             {
                 "Pipe Name": pipe_name,
                 "Length (m)": details["Length"],
-                #"Coordinates": details["coordinates"],
+                "Coordinates": details["Coordinates"],
                 "Material": details["Material"],
                 "Medium": details["Medium"],
                 "Pressure": details["Pressure"],
