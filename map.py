@@ -1681,8 +1681,9 @@ def display_processed_data_table():
             data=csv_data,
             file_name="processed_pipe_data.csv",
             mime="text/csv",
-            key="download_processed_pipe_data"
+            key=f"download_processed_pipe_{time.time()}"  # Ensure unique key
         )
+
 
         # Add expandable sections for detailed "Pipe Data"
         for index, row in df.iterrows():
