@@ -1585,11 +1585,54 @@ def handle_delete_processed_data():
                     st.error(f"Failed to delete entry '{selected_entry}': {e}")
             else:
                 st.warning(f"Entry '{selected_entry}' does not exist.")
+                
 
+def restructure_data_for_csv(processed_data):
+    """
+    Restructure processed data into the required CSV format.
+    Each pipe has three rows: Pipe Name, Start Landmark, and End Landmark.
+    """
+    csv_data = []
+
+    for pipe_name, details in processed_data.items():
+        # Row for Pipe Name
+        csv_data.append({
+            "Name": pipe_name,
+            "Coordinates": details.get("Coordinates", "N/A"),
+            "Length (m)": details.get("Length", 0),
+            "Medium": details.get("Medium", "N/A"),
+            "Pressure (bar)": details.get("Pressure", "N/A"),
+            "Temperature (°C)": details.get("Temperature", "N/A"),
+            "Rest of Data": "p"  # Placeholder for additional data
+        })
+
+        # Row for Start Landmark
+        csv_data.append({
+            "Name": "Start Landmark",
+            "Coordinates": details.get("Start Coordinates", "N/A"),
+            "Length (m)": 0,
+            "Medium": "N/A",
+            "Pressure (bar)": "N/A",
+            "Temperature (°C)": "N/A",
+            "Rest of Data": "N/A"
+        })
+
+        # Row for End Landmark
+        csv_data.append({
+            "Name": "End Landmark",
+            "Coordinates": details.get("End Coordinates", "N/A"),
+            "Length (m)": 0,
+            "Medium": "N/A",
+            "Pressure (bar)": "N/A",
+            "Temperature (°C)": "N/A",
+            "Rest of Data": "N/A"
+        })
+
+    return csv_data
 
 def display_processed_data_table():
     """
-    Display the processed pipe data table with the desired structure and allow exporting as CSV.
+    Display the contents of the processed JSON file as a table with added fields and expandable details.
     """
     st.header("Processed Pipe Data Table")
 
@@ -1603,51 +1646,38 @@ def display_processed_data_table():
             st.warning("No processed pipe data available.")
             return
 
-        # Prepare the data for the desired structure
-        table_data = []
+        # Prepare the data for display
+        table_data = [
+            {
+                "Pipe Name": pipe_name,
+                "Length (m)": details["Length"],
+                "Coordinates": details["Coordinates"],
+                "Material": details["Material"],
+                "Medium": details["Medium"],
+                "Pressure": details["Pressure"],
+                "Temperature": details["Temperature"],
+                "Start Landmark": details["Start Landmark"],
+                "Start Coordinates": details["Start Coordinates"],
+                "End Landmark": details["End Landmark"],
+                "End Coordinates": details["End Coordinates"],
+            }
+            for pipe_name, details in processed_data.items()
+        ]
 
-        for pipe_name, details in processed_data.items():
-            # Pipe Name Row
-            table_data.append({
-                "Name": pipe_name,
-                "Coordinates": details.get("Coordinates", "N/A"),
-                "Length (m)": details.get("Length", 0),
-                "Medium": details.get("Medium", "N/A"),
-                "Pressure (bar)": details.get("Pressure", "N/A"),
-                "Temperature (°C)": details.get("Temperature", "N/A"),
-                "Rest of Data": "p"  # Placeholder for additional data
-            })
-
-            # Start Landmark Row
-            table_data.append({
-                "Name": "Start Landmark",
-                "Coordinates": details.get("Start Coordinates", "N/A"),
-                "Length (m)": 0,
-                "Medium": "N/A",
-                "Pressure (bar)": "N/A",
-                "Temperature (°C)": "N/A",
-                "Rest of Data": "N/A"
-            })
-
-            # End Landmark Row
-            table_data.append({
-                "Name": "End Landmark",
-                "Coordinates": details.get("End Coordinates", "N/A"),
-                "Length (m)": 0,
-                "Medium": "N/A",
-                "Pressure (bar)": "N/A",
-                "Temperature (°C)": "N/A",
-                "Rest of Data": "N/A"
-            })
-
-        # Convert the structured data into a DataFrame
+        # Convert to DataFrame for display
         df = pd.DataFrame(table_data)
 
-        # Display the table in Streamlit
+        # Display the table for all main details
         st.table(df)
 
-        # Convert DataFrame to CSV format and provide a download button
-        csv_data = df.to_csv(index=False)  # Convert to CSV
+        # Generate CSV-ready data using the restructuring function
+        csv_ready_data = restructure_data_for_csv(processed_data)
+
+        # Convert the restructured data into a DataFrame
+        csv_df = pd.DataFrame(csv_ready_data)
+
+        # Provide a download button for the correctly formatted CSV
+        csv_data = csv_df.to_csv(index=False)
         st.download_button(
             label="Download Processed Pipe Data as CSV",
             data=csv_data,
@@ -1655,80 +1685,24 @@ def display_processed_data_table():
             mime="text/csv",
         )
 
+        # Add expandable sections for detailed "Pipe Data"
+        for index, row in df.iterrows():
+            with st.expander(f"{row['Pipe Name']} (Details)"):
+                st.write(f"**Length:** {row['Length (m)']} meters")
+                st.write(f"**Material:** {row['Material']}")
+                st.write(f"**Medium:** {row['Medium']}")
+                st.write(f"**Pressure:** {row['Pressure']} bar")
+                st.write(f"**Temperature:** {row['Temperature']} °C")
+                st.write(f"**Start Landmark:** {row['Start Landmark']}")
+                st.write(f"**Start Coordinates:** {row['Start Coordinates']}")
+                st.write(f"**End Landmark:** {row['End Landmark']}")
+                st.write(f"**End Coordinates:** {row['End Coordinates']}")
+                st.json(processed_data[row['Pipe Name']]["Pipe Data"])
+
     except FileNotFoundError:
         st.warning(f"No processed data file ({PROCESSED_DATA_FILE}) found.")
     except json.JSONDecodeError as e:
         st.error(f"Error decoding JSON: {e}")
-
-# def display_processed_data_table():
-#     """
-#     Display the contents of the processed JSON file as a table with added fields and expandable details.
-#     """
-#     st.header("Processed Pipe Data Table")
-
-#     try:
-#         # Load the JSON file
-#         with open(PROCESSED_DATA_FILE, "r") as file:
-#             processed_data = json.load(file)
-
-#         # Check if data is empty
-#         if not processed_data:
-#             st.warning("No processed pipe data available.")
-#             return
-
-#         #st.json(processed_data)
-
-#         # Prepare the data for display
-#         table_data = [
-#             {
-#                 "Pipe Name": pipe_name,
-#                 "Length (m)": details["Length"],
-#                 "Coordinates": details["Coordinates"],
-#                 "Material": details["Material"],
-#                 "Medium": details["Medium"],
-#                 "Pressure": details["Pressure"],
-#                 "Temperature": details["Temperature"],
-#                 "Start Landmark": details["Start Landmark"],
-#                 "Start Coordinates": details["Start Coordinates"],
-#                 "End Landmark": details["End Landmark"],
-#                 "End Coordinates": details["End Coordinates"],
-#             }
-#             for pipe_name, details in processed_data.items()
-#         ]
-
-#         # Convert to DataFrame for display
-#         df = pd.DataFrame(table_data)
-
-#         # Display the table for all main details
-#         st.table(df)
-
-#         csv_data = df.to_csv(index=False)  # Convert DataFrame to CSV
-#         st.download_button(
-#             label="Download Processed Pipe Data as CSV",
-#             data=csv_data,
-#             file_name="processed_pipe_data.csv",
-#             mime="text/csv",
-#         )
-
-#         # Add expandable sections for detailed "Pipe Data"
-#         for index, row in df.iterrows():
-#             with st.expander(f"{row['Pipe Name']} (Details)"):
-#                 st.write(f"**Length:** {row['Length (m)']} meters")
-#                 st.write(f"**Material:** {row['Material']}")
-#                 st.write(f"**Medium:** {row['Medium']}")
-#                 st.write(f"**Pressure:** {row['Pressure']} bar")
-#                 st.write(f"**Temperature:** {row['Temperature']} °C")
-#                 st.write(f"**Start Landmark:** {row['Start Landmark']}")
-#                 st.write(f"**Start Coordinates:** {row['Start Coordinates']}")
-#                 st.write(f"**End Landmark:** {row['End Landmark']}")
-#                 st.write(f"**End Coordinates:** {row['End Coordinates']}")
-#                 # Keep the JSON display for detailed pipe data
-#                 st.json(processed_data[row['Pipe Name']]["Pipe Data"])
-
-#     except FileNotFoundError:
-#         st.warning(f"No processed data file ({PROCESSED_DATA_FILE}) found.")
-#     except json.JSONDecodeError as e:
-#         st.error(f"Error decoding JSON: {e}")
 
 
 
