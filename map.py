@@ -1603,29 +1603,26 @@ def restructure_data_for_csv(processed_data):
             "Medium": details.get("Medium", "N/A"),
             "Pressure (bar)": details.get("Pressure", "N/A"),
             "Temperature (°C)": details.get("Temperature", "N/A"),
-            "Rest of Data": "p"  # Placeholder for additional data
         })
 
         # Row for Start Landmark
         csv_data.append({
-            "Name": "Start Landmark",
+            "Name": details.get("Start Landmark", "N/A"),
             "Coordinates": details.get("Start Coordinates", "N/A"),
             "Length (m)": 0,
             "Medium": "N/A",
             "Pressure (bar)": "N/A",
             "Temperature (°C)": "N/A",
-            "Rest of Data": "N/A"
         })
 
         # Row for End Landmark
         csv_data.append({
-            "Name": "End Landmark",
+            "Name": details.get("End Landmark", "N/A"),
             "Coordinates": details.get("End Coordinates", "N/A"),
             "Length (m)": 0,
             "Medium": "N/A",
             "Pressure (bar)": "N/A",
             "Temperature (°C)": "N/A",
-            "Rest of Data": "N/A"
         })
 
     return csv_data
