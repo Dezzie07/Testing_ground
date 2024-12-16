@@ -1599,6 +1599,7 @@ def restructure_data_for_csv(processed_data):
         csv_data.append({
             "Name": pipe_name,
             "Coordinates": details.get("Coordinates", "N/A"),
+            "Material": details.get("Material", "N/A"),
             "Length (meters)": details.get("Length", 0),
             "Medium": details.get("Medium", "N/A"),
             "Pressure (bar)": details.get("Pressure", "N/A"),
