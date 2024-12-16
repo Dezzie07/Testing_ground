@@ -1609,7 +1609,7 @@ def display_processed_data_table():
             {
                 "Pipe Name": pipe_name,
                 "Length (m)": details["Length"],
-                "Coordinates": details["coordinates"],
+                #"Coordinates": details["coordinates"],
                 "Material": details["Material"],
                 "Medium": details["Medium"],
                 "Pressure": details["Pressure"],
@@ -1728,7 +1728,10 @@ def pipe_main(selected_pipes):
         st.markdown("### Processed Pipe Data Summary")
         display_processed_data_table()
         
-        st.rerun()
+        #st.rerun()
+
+        st.write("Processed Data Structure:")
+        st.json(processed_data)
 
 
 
