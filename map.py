@@ -1435,7 +1435,7 @@ def select_pipes_for_calculation(pipe_data):
         # Prepare data for external use
         return selected_data
     else:
-        st.info("No pipes selected.")
+        st.empty()
         return {}
         
 def add_landmarks_to_pipes(pipe_data, landmarks):
