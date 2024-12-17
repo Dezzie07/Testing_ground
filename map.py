@@ -1480,7 +1480,7 @@ def main_storage():
     if pipe_data:
         display_data_table(pipe_data, landmarks)
         #add_download_button(df)
-        handle_delete_entry(pipe_data)
+        #handle_delete_entry(pipe_data)
     else:
         st.info("No data stored yet. Add pipes or landmarks to get started.")
 
