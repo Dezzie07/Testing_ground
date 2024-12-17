@@ -1421,7 +1421,7 @@ def select_pipes_for_calculation(pipe_data):
 
     # Create a dropdown menu for selecting pipes
     selected_pipes = st.multiselect(
-        label="If pipes is not showing, please Refresh Data button",
+        label="If pipes is not showing, please use the Refresh Data button",
         options=pipe_names,
         help="Choose the pipes you want to use for piping cost calculations."
     )
