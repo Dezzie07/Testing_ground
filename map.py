@@ -1152,7 +1152,7 @@ def get_distance_values():
                 for pipe in individual_pipes
             ], total_distance
         else:
-            st.warning("No valid pipe data available from the API.")
+            st.empty()#st.warning("No valid pipe data available from the API.")
             return None, None
     except requests.exceptions.RequestException as req_error:
         st.error(f"Network error occurred while fetching distances: {req_error}")
@@ -1182,7 +1182,7 @@ def get_landmarks():
         if data.get("status") == "success":
             return data.get("landmarks", [])
         else:
-            st.warning("No landmarks data found.")
+            st.empty()#st.warning("No landmarks data found.")
             return []
     except requests.exceptions.RequestException as req_error:
         st.error(f"Network error occurred while fetching landmarks: {req_error}")
@@ -1411,7 +1411,7 @@ def refresh_data(pipe_data):
             st.warning("All data has been refreshed.")
             return "Data refreshed successfully."  # Success message
         else:
-            return "Error: Failed to refresh data."  # Error message
+            return st.empty()#"Error: Failed to refresh data."  # Error message
 
 
 def select_pipes_for_calculation(pipe_data):
