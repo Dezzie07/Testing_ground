@@ -1476,7 +1476,7 @@ def main_storage():
         st.empty()
 
     # Display stored pipes and landmarks
-    st.header("Stored Pipes and Landmarks")
+    st.header("API Pipes and Landmarks")
     if pipe_data:
         display_data_table(pipe_data, landmarks)
         #add_download_button(df)
