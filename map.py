@@ -1495,7 +1495,7 @@ def main_storage():
 
     # (Optional) Output selected pipes for further use
     if selected_pipes:
-        st.success("Selected pipes ready for cost calculations.")
+        st.empty()#st.success("Selected pipes ready for cost calculations.")
     
     return selected_pipes
 
