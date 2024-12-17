@@ -1381,7 +1381,7 @@ def add_download_button(df):
 
 def handle_delete_entry(pipe_data):
     """Allow the user to delete an entry by selecting from a dropdown menu."""
-    st.header("Delete an Entry")
+    st.header("Delete pipes or landmark in API")
 
     # Get all stored pipe and landmark names
     entry_names = list(pipe_data.keys())
@@ -1411,7 +1411,7 @@ def refresh_data(pipe_data):
             st.warning("All data has been refreshed.")
             return "Data refreshed successfully."  # Success message
         else:
-            return st.empty()#"Error: Failed to refresh data."  # Error message
+            return "Data refreshed successfully."  # Error message
 
 
 def select_pipes_for_calculation(pipe_data):
@@ -1476,7 +1476,7 @@ def main_storage():
         st.empty()
 
     # Display stored pipes and landmarks
-    st.header("API Pipes and Landmarks")
+    #st.header("API Pipes and Landmarks")
     if pipe_data:
         display_data_table(pipe_data, landmarks)
         #add_download_button(df)
