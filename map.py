@@ -1473,7 +1473,7 @@ def main_storage():
 
     # Save updated storage
     if not save_data(pipe_data):
-        st.error("Failed to save updated storage.")
+        st.empty()
 
     # Display stored pipes and landmarks
     st.header("Stored Pipes and Landmarks")
